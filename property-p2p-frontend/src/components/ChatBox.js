@@ -15,7 +15,7 @@ export default function ChatBox({ transaction, token, userId, backendUrl }) {
     });
 
     // Unirse a la sala de la transacción
-    socketRef.current.emit("join", { transactionId: transaction._id });
+    socketRef.current.emit("join-transaction", { transactionId: transaction._id, userId });
 
     // Recibir mensajes en tiempo real
     socketRef.current.on("chat:message", (msg) => {
