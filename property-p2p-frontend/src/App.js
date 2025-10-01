@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Navbar from './components/Navbar';
+import Header from './components/Header'; // Nuevo header tipo KeyHome
 import Footer from './components/Footer';
 import Home from './components/Home';
 import Login from './components/Login';
@@ -14,8 +14,6 @@ import AdminPanel from './components/AdminPanel';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
 
-
-
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [backendUrl, setBackendUrl] = useState('http://localhost:3005');
@@ -28,7 +26,15 @@ function App() {
 
   return (
     <Router>
-      <Navbar setToken={setToken} token={token} />
+      {/* Pasa el token al Header para mostrar menú contextual */}
+      <Header token={token} />
+      <div className="main-banner">
+        <img src="/banner.jpg" alt="Banner" className="banner-img" />
+        <div className="banner-text">
+          <h1>Bienvenido a PropertyP2P</h1>
+          <p>Compra, vende o alquila propiedades de forma segura y directa.</p>
+        </div>
+      </div>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route

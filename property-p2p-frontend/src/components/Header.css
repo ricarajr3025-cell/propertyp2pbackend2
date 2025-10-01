@@ -1,0 +1,77 @@
+.main-header {
+  background: #f5f3ed;
+  padding: 0;
+  position: relative;
+  z-index: 10;
+}
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1em 1.5em;
+}
+.logo {
+  height: 38px;
+}
+.lang-flags img {
+  width: 32px;
+  margin-left: 8px;
+  border-radius: 3px;
+  border: 1px solid #eee;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.04);
+}
+.menu-btn {
+  background: none;
+  border: none;
+  font-size: 2em;
+  cursor: pointer;
+  padding: .2em .6em;
+}
+.menu-icon {
+  font-size: 1.8em;
+}
+.side-menu {
+  position: fixed;
+  top: 0; right: 0;
+  width: 65vw;
+  max-width: 340px;
+  height: 100vh;
+  background: #fff;
+  box-shadow: -3px 0 18px rgba(0,0,0,.07);
+  padding: 2em 2em 2em 2em;
+  display: flex;
+  flex-direction: column;
+  z-index: 1000;
+  animation: slideIn .4s;
+}
+@keyframes slideIn {
+  from {right: -70vw;}
+  to {right: 0;}
+}
+.close-btn {
+  align-self: flex-end;
+  font-size: 2.2em;
+  background: none;
+  border: none;
+  cursor: pointer;
+  margin-bottom: 1.2em;
+  color: #444;
+  font-weight: bold;
+}
+.side-menu nav {
+  display: flex;
+  flex-direction: column;
+  gap: 1.3em;
+  margin-top: 1em;
+}
+.side-menu a {
+  font-size: 1.3em;
+  color: #444;
+  text-decoration: none;
+  font-family: 'Montserrat', sans-serif;
+  transition: color .2s;
+}
+.side-menu a:hover {
+  color: #b89b5e;
+  text-decoration: underline;
+}
