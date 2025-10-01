@@ -11,6 +11,10 @@ import TransactionSection from './components/TransactionSection';
 import Profile from './components/Profile';
 import getBackendPort from './getBackendPort';
 import AdminPanel from './components/AdminPanel';
+import ForgotPassword from './components/ForgotPassword';
+import ResetPassword from './components/ResetPassword';
+
+
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -30,6 +34,14 @@ function App() {
         <Route
           path="/login"
           element={<Login setToken={setToken} backendUrl={backendUrl} />}
+        />
+        <Route
+          path="/forgot-password"
+          element={<ForgotPassword backendUrl={backendUrl} />}
+        />
+        <Route
+          path="/reset-password"
+          element={<ResetPassword backendUrl={backendUrl} />}
         />
         <Route
           path="/register"
