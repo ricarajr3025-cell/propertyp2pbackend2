@@ -8,6 +8,9 @@ const portfinder = require('portfinder');
 const path = require('path');
 const Transaction = require('./models/Transaction');
 
+// Servir archivos subidos de la carpeta uploads
+app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
+
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: '*' } });
 
@@ -69,8 +72,8 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/property-
 
     // exponer puerto actual
     app.get('/api/port', (req, res) => res.json({ port: PORT }));
-   
-   // modelo admin //
+
+    // modelo admin
     app.use('/api/admin', require('./routes/admin'));
 
     server.listen(PORT, HOST, () => {
