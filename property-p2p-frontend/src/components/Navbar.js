@@ -1,25 +1,46 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
+import './Navbar.css';
 
 export default function Navbar({ token, setToken }) {
+  const [open, setOpen] = useState(false);
+
   return (
-    <nav style={{ background: "#eee", padding: "10px", marginBottom: "20px" }}>
-      <Link to="/" style={{ marginRight: "10px" }}>Inicio</Link>
-      <Link to="/properties" style={{ marginRight: "10px" }}>Propiedades</Link>
-      <Link to="/publish" style={{ marginRight: "10px" }}>Publicar</Link>
-      <Link to="/transactions" style={{ marginRight: "10px" }}>Transacciones</Link>
-      <Link to="/profile" style={{ marginRight: "10px" }}>Perfil</Link>
-      {!token ? (
-        <>
-          <Link to="/login" style={{ marginRight: "10px" }}>Login</Link>
-          <Link to="/register" style={{ marginRight: "10px" }}>Registro</Link>
-        </>
-      ) : (
-        <button onClick={() => {
-          localStorage.removeItem('token');
-          setToken(null);
-        }}>Cerrar sesión</button>
+    <>
+      <button
+        className="menu-btn"
+        onClick={() => setOpen(true)}
+        aria-label="Abrir menú"
+      >
+        ☰
+      </button>
+      {open && (
+        <div className="sidebar-menu">
+          <button className="close-btn" onClick={() => setOpen(false)}>×</button>
+          <ul>
+            <li><Link to="/" onClick={() => setOpen(false)}>Inicio</Link></li>
+            <li><Link to="/properties" onClick={() => setOpen(false)}>Buscar Propiedad</Link></li>
+            {!token && <li><Link to="/login" onClick={() => setOpen(false)}>Login</Link></li>}
+            {!token && <li><Link to="/register" onClick={() => setOpen(false)}>Registro</Link></li>}
+            {!token && <li><Link to="/publish" onClick={() => setOpen(false)}>Registrar Propiedad</Link></li>}
+            {token && <li><Link to="/profile" onClick={() => setOpen(false)}>Perfil</Link></li>}
+            {token && <li><Link to="/transactions" onClick={() => setOpen(false)}>Transacciones</Link></li>}
+            {token && <li><Link to="/publish" onClick={() => setOpen(false)}>Publicar</Link></li>}
+            {token && (
+              <li>
+                <button
+                  className="logout-btn"
+                  onClick={() => {
+                    localStorage.removeItem('token');
+                    setToken(null);
+                    setOpen(false);
+                  }}
+                >Cerrar sesión</button>
+              </li>
+            )}
+          </ul>
+        </div>
       )}
-    </nav>
+    </>
   );
 }
