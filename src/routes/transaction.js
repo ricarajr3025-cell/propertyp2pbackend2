@@ -10,6 +10,12 @@ module.exports = function(io) {
   router.post('/buy/:propertyId', auth, async (req, res) => {
     const property = await Property.findById(req.params.propertyId);
     if (!property || !property.available) return res.status(404).json({ message: 'No disponible' });
+
+    // Validación para evitar que el owner compre su propia propiedad
+    if (String(property.owner) === String(req.user.id)) {
+      return res.status(400).json({ message: 'No puedes comprar tu propia propiedad.' });
+    }
+
     const transaction = new Transaction({
       property: property._id,
       buyer: req.user.id,
@@ -62,6 +68,12 @@ module.exports = function(io) {
 
     res.json({ message: 'Apelación enviada' });
   });
-
+   // Obtener historial de chat de una transacción
+ router.get('/:id/chat', auth, async (req, res) => {
+  const tx = await Transaction.findById(req.params.id);
+  if (!tx) return res.status(404).json({ message: 'No existe' });
+  res.json(tx.chatHistory || []);
+});
+    
   return router;
 };

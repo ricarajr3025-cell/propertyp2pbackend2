@@ -69,6 +69,9 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/property-
 
     // exponer puerto actual
     app.get('/api/port', (req, res) => res.json({ port: PORT }));
+   
+   // modelo admin //
+    app.use('/api/admin', require('./routes/admin'));
 
     server.listen(PORT, HOST, () => {
       console.log(`🚀 Servidor corriendo en http://${HOST}:${PORT}`);

@@ -16,4 +16,10 @@ router.get('/', async (req, res) => {
   res.json(properties);
 });
 
+// Listar propiedades
+router.get('/', async (req, res) => {
+  const properties = await Property.find({ available: true }).populate('owner', 'username email');
+  res.json(properties);
+});
+
 module.exports = router;

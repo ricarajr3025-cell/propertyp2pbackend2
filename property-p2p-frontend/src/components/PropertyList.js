@@ -20,6 +20,11 @@ export default function PropertyList({ token, backendUrl }) {
     }
   };
 
+  const contactOwner = (ownerId) => {
+    // Redirige a la ventana de chat con el owner
+    window.location.href = `/chat/${ownerId}`;
+  };
+
   return (
     <div>
       <h2>Propiedades disponibles</h2>
@@ -28,6 +33,11 @@ export default function PropertyList({ token, backendUrl }) {
           <h3>{p.title} - ${p.price}</h3>
           <p>{p.description}</p>
           <p>Ubicación: {p.location}</p>
+          {p.owner && (
+            <p>Propietario: {p.owner.username || p.owner.email}
+              <button onClick={() => contactOwner(p.owner._id)}>Contactar</button>
+            </p>
+          )}
           <button onClick={() => buy(p._id)}>Comprar</button>
         </div>
       ))}

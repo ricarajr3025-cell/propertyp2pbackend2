@@ -10,6 +10,7 @@ import PublishProperty from './components/PublishProperty';
 import TransactionSection from './components/TransactionSection';
 import Profile from './components/Profile';
 import getBackendPort from './getBackendPort';
+import AdminPanel from './components/AdminPanel';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -49,6 +50,8 @@ function App() {
         <Route
           path="/profile"
           element={token ? <Profile token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />}
+        />
+        <Route path="/admin" element={<AdminPanel />}
         />
       </Routes>
       <Footer />
