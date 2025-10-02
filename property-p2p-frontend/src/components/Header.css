@@ -7,7 +7,7 @@
 .header-top {
   display: flex;
   align-items: center;
-  justify-content: flex-end; /* Botón hamburguesa a la derecha */
+  justify-content: flex-end;
   padding: 1em 1.5em;
 }
 .menu-btn {
@@ -21,19 +21,26 @@
   cursor: pointer;
   padding: .2em .6em;
   z-index: 10001;
+  transition: background .2s;
 }
 .menu-icon {
-  font-size: 1.8em;
+  font-size: 2.6em;
+  transition: transform 0.35s cubic-bezier(.4,2,.4,1), color 0.2s;
+  display: inline-block;
+}
+.menu-icon.rotated {
+  transform: rotate(90deg); /* Gira el icono al abrir/cerrar */
+  color: #b89b5e;           /* Opcional: cambia color para indicar "cerrar" */
 }
 .side-menu {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;         /* Ocupa todo el ancho de la pantalla */
-  height: 100vh;        /* Ocupa todo el alto de la pantalla */
+  width: 100vw;
+  height: 100vh;
   background: #fff;
   box-shadow: none;
-  padding: 4em 2em 2em 2em; /* Espacio extra arriba para el botón "cerrar" */
+  padding: 4em 2em 2em 2em;
   display: flex;
   flex-direction: column;
   z-index: 1000;
@@ -44,14 +51,12 @@
   to { opacity: 1; transform: scale(1); }
 }
 .close-btn {
+  /* El botón de cerrar se ve igual que el de abrir */
   align-self: flex-end;
-  font-size: 2.2em;
   background: none;
   border: none;
   cursor: pointer;
   margin-bottom: 2em;
-  color: #444;
-  font-weight: bold;
 }
 .side-menu nav {
   display: flex;
