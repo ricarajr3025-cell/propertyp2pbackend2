@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 
-// Puedes mover esto a un archivo countries.json si prefieres
 const countries = [
   { code: "CO", name: "Colombia", emoji: "🇨🇴" },
   { code: "MX", name: "México", emoji: "🇲🇽" },

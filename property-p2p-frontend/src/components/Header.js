@@ -11,15 +11,24 @@ export default function Header({ token }) {
   return (
     <header className="main-header">
       <div className="header-top">
-        <button className="menu-btn" onClick={() => setMenuOpen(!menuOpen)}>
-          <span className={iconClass}>&#9776;</span>
-        </button>
+        {!menuOpen && (
+          <button
+            className="menu-btn"
+            onClick={() => setMenuOpen(true)}
+            aria-label="Abrir menú"
+          >
+            <span className={iconClass}>&#9776;</span>
+          </button>
+        )}
       </div>
       {menuOpen && (
         <div className="side-menu">
-          {/* El mismo botón hamburguesa para cerrar */}
-          <button className="menu-btn close-btn" onClick={() => setMenuOpen(false)}>
-            <span className={iconClass}>&#9776;</span>
+          <button
+            className="menu-btn close-btn"
+            onClick={() => setMenuOpen(false)}
+            aria-label="Cerrar menú"
+          >
+            <span className={iconClass}>&#10006;</span>
           </button>
           <nav>
             <Link to="/" onClick={() => setMenuOpen(false)}>Inicio</Link>

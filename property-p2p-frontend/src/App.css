@@ -1,38 +1,117 @@
-/* Elimina el estilo por defecto y añade el estilo tipo KeyHome */
-
-.main-banner {
-  position: relative;
-  width: 100vw;
-  max-width: 100%;
-  overflow: hidden;
-  margin-bottom: 2em;
-}
-.banner-img {
-  width: 100vw;
-  height: 32vh;
-  object-fit: cover;
-  display: block;
-}
-.banner-text {
-  position: absolute;
-  top: 50%;
-  left: 5vw;
-  transform: translateY(-50%);
-  background: rgba(255,255,255,.80);
-  padding: 1.5em 2em;
-  border-radius: 12px;
-  box-shadow: 0 3px 12px rgba(0,0,0,.08);
-  max-width: 450px;
-}
-.banner-text h1 {
+body {
+  background: #111112;
+  color: #f7f7f8;
+  font-family: 'Montserrat', Arial, sans-serif;
   margin: 0;
-  font-size: 2em;
-  color: #b89b5e;
-  font-family: 'Montserrat', sans-serif;
+  padding: 0;
 }
-.banner-text p {
-  font-size: 1.2em;
-  color: #333;
+.main-header,
+.side-menu {
+  background: #18191a;
+  color: #f7f7f8;
 }
 
-/* Puedes agregar aquí otros estilos globales según lo necesites */
+/* Títulos y labels */
+h2, h3, h4, .profile-container label {
+  color: #fff;
+  font-weight: 600;
+}
+label {
+  margin-top: 1em;
+  margin-bottom: 0.2em;
+  display: block;
+  color: #f7f7f8;
+  font-weight: 500;
+}
+.profile-info p, .profile-info b {
+  color: #e7e7eb;
+}
+
+/* Inputs y selects */
+input, select, textarea {
+  background: #222226;
+  color: #f7f7f8 !important;
+  border: 1.5px solid #444;
+  border-radius: 8px;
+  padding: 0.7em 1em;
+  margin-bottom: 1em;
+  font-size: 1em;
+}
+input::placeholder, textarea::placeholder {
+  color: #cccccc !important;
+}
+input:focus, select:focus, textarea:focus {
+  outline: 2px solid #38a3f1;
+  border-color: #38a3f1;
+}
+button {
+  background: #232323;
+  color: #fff;
+  border: 1.5px solid #38a3f1;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, color .2s, border .2s;
+}
+button:hover {
+  background: #222;
+  color: #38a3f1;
+  border-color: #7fd87f;
+}
+
+/* Menú y contenedores */
+.profile-container {
+  background: #18191a;
+  padding: 2em;
+  border-radius: 16px;
+  box-shadow: 0 2px 24px rgba(0,0,0,0.29);
+  margin-top: 2em;
+  color: #fff;
+}
+.profile-info {
+  background: #191a1c;
+  border-radius: 12px;
+  padding: 1em;
+  margin-bottom: 1em;
+  border: 1px solid #232323;
+  color: #fff;
+}
+
+/* Imágenes de documentos */
+.profile-container img {
+  border: 2px solid #38a3f1;
+  border-radius: 12px;
+  box-shadow: 0 1px 8px rgba(56,163,241,0.12);
+  background: #191a1c;
+}
+
+/* Listas y separadores */
+ul {
+  list-style: none;
+  padding-left: 0;
+}
+li {
+  background: #191a1c;
+  margin-bottom: 0.7em;
+  padding: 0.8em 1em;
+  border-radius: 10px;
+  border: 1px solid #222;
+  color: #e7e7eb;
+}
+hr {
+  border: none;
+  border-top: 1.5px solid #232323;
+  margin: 1.5em 0;
+}
+
+/* Mensajes */
+p[style*="color: red"], .error-message {
+  color: #e94343 !important;
+  background: none;
+  margin: 0.5em 0;
+}
+.success-message {
+  color: #7fd87f;
+  background: none;
+  margin: 0.5em 0;
+}

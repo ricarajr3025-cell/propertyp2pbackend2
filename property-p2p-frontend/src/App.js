@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import Header from './components/Header'; // Nuevo header tipo KeyHome
+import Header from './components/Header';
 import Footer from './components/Footer';
 import Home from './components/Home';
 import Login from './components/Login';
@@ -13,6 +13,7 @@ import getBackendPort from './getBackendPort';
 import AdminPanel from './components/AdminPanel';
 import ForgotPassword from './components/ForgotPassword';
 import ResetPassword from './components/ResetPassword';
+import './App.css';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -26,7 +27,6 @@ function App() {
 
   return (
     <Router>
-      {/* Pasa el token al Header para mostrar menú contextual */}
       <Header token={token} />
       <div className="main-banner">
         <img src="/banner.jpg" alt="Banner" className="banner-img" />
@@ -37,40 +37,15 @@ function App() {
       </div>
       <Routes>
         <Route path="/" element={<Home />} />
-        <Route
-          path="/login"
-          element={<Login setToken={setToken} backendUrl={backendUrl} />}
-        />
-        <Route
-          path="/forgot-password"
-          element={<ForgotPassword backendUrl={backendUrl} />}
-        />
-        <Route
-          path="/reset-password"
-          element={<ResetPassword backendUrl={backendUrl} />}
-        />
-        <Route
-          path="/register"
-          element={<Register setToken={setToken} backendUrl={backendUrl} />}
-        />
-        <Route
-          path="/properties"
-          element={token ? <PropertyList token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/publish"
-          element={token ? <PublishProperty token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/transactions"
-          element={token ? <TransactionSection token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />}
-        />
-        <Route
-          path="/profile"
-          element={token ? <Profile token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />}
-        />
-        <Route path="/admin" element={<AdminPanel />}
-        />
+        <Route path="/login" element={<Login setToken={setToken} backendUrl={backendUrl} />} />
+        <Route path="/forgot-password" element={<ForgotPassword backendUrl={backendUrl} />} />
+        <Route path="/reset-password" element={<ResetPassword backendUrl={backendUrl} />} />
+        <Route path="/register" element={<Register setToken={setToken} backendUrl={backendUrl} />} />
+        <Route path="/properties" element={token ? <PropertyList token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />
+        <Route path="/publish" element={token ? <PublishProperty token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />
+        <Route path="/transactions" element={token ? <TransactionSection token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />
+        <Route path="/profile" element={token ? <Profile token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />
+        <Route path="/admin" element={<AdminPanel />} />
       </Routes>
       <Footer />
     </Router>
