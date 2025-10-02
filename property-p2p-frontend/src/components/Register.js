@@ -7,6 +7,7 @@ export default function Register({ setToken, backendUrl }) {
   const [code, setCode] = useState('');
   const [codeSent, setCodeSent] = useState(false);
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState(''); // Nuevo campo
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -51,6 +52,10 @@ export default function Register({ setToken, backendUrl }) {
   const register = async () => {
     if (!isValidPassword(password)) {
       setError('La contraseña debe tener entre 8 y 128 caracteres, al menos un número y un carácter especial.');
+      return;
+    }
+    if (password !== confirmPassword) {
+      setError('Las contraseñas no coinciden.');
       return;
     }
     setLoading(true);
@@ -101,7 +106,14 @@ export default function Register({ setToken, backendUrl }) {
             onChange={e => setPassword(e.target.value)}
             disabled={loading}
           />
-          <button onClick={register} disabled={loading || !password}>Crear cuenta</button>
+          <input
+            type="password"
+            placeholder="Confirmar contraseña"
+            value={confirmPassword}
+            onChange={e => setConfirmPassword(e.target.value)}
+            disabled={loading}
+          />
+          <button onClick={register} disabled={loading || !password || !confirmPassword}>Crear cuenta</button>
           <p>La contraseña debe tener entre 8 y 128 caracteres, al menos un número y un carácter especial.</p>
         </>
       )}
