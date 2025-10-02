@@ -1,0 +1,14 @@
+.profile-container {
+  max-width: 600px;
+  margin: auto;
+  padding: 20px;
+}
+.profile-info {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.profile-avatar {
+  width: 100px;
+  border-radius: 50%;
+}
