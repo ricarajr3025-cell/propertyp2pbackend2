@@ -25,6 +25,7 @@ export default function Profile({ token, backendUrl }) {
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState('');
   const [editAvatar, setEditAvatar] = useState('');
+  const [editAvatarFile, setEditAvatarFile] = useState(null);
 
   // Verificación
   const [verification, setVerification] = useState(null);
@@ -33,6 +34,7 @@ export default function Profile({ token, backendUrl }) {
   const [front, setFront] = useState(null);
   const [back, setBack] = useState(null);
   const [verifMsg, setVerifMsg] = useState('');
+  const [showVerificationForm, setShowVerificationForm] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -71,18 +73,32 @@ export default function Profile({ token, backendUrl }) {
     fetchData();
   }, [token, backendUrl]);
 
+  // Convertir imagen a base64
+  const toBase64 = file =>
+    new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+
   // Guardar cambios de perfil
   const handleSave = async () => {
     try {
+      let avatarData = editAvatar;
+      if (editAvatarFile) {
+        avatarData = await toBase64(editAvatarFile);
+      }
       await axios.put(`${backendUrl}/api/profile`, {
         name: editName,
-        avatar: editAvatar
+        avatar: avatarData,
       }, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setEditing(false);
       setError('');
-      setUser({ ...user, name: editName, avatar: editAvatar });
+      setUser({ ...user, name: editName, avatar: avatarData });
+      setEditAvatarFile(null);
     } catch (e) {
       setError('No se pudo guardar los cambios.');
     }
@@ -105,6 +121,7 @@ export default function Profile({ token, backendUrl }) {
         },
       });
       setVerifMsg("¡Verificación enviada!");
+      setShowVerificationForm(false);
       // Actualiza verificación
       const resVerif = await axios.get(`${backendUrl}/api/profile/verify`, {
         headers: { Authorization: `Bearer ${token}` }
@@ -123,13 +140,13 @@ export default function Profile({ token, backendUrl }) {
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <div className="profile-info" style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
         <img
-          src={user.avatar || 'https://ui-avatars.com/api/?name=' + (user.name || user.email)}
+          src={user.avatar ? user.avatar : 'https://ui-avatars.com/api/?name=' + (user.name || user.email)}
           alt="Avatar"
           className="profile-avatar"
-          style={{ width: 100, borderRadius: '50%' }}
+          style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', background: '#191a1c', border: '2px solid #38a3f1' }}
         />
         {editing ? (
-          <div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <input
               type="text"
               value={editName}
@@ -138,14 +155,13 @@ export default function Profile({ token, backendUrl }) {
               style={{ marginBottom: 8 }}
             />
             <input
-              type="text"
-              value={editAvatar}
-              onChange={e => setEditAvatar(e.target.value)}
-              placeholder="URL de foto"
+              type="file"
+              accept="image/*"
+              onChange={e => setEditAvatarFile(e.target.files[0])}
               style={{ marginBottom: 8 }}
             />
             <button onClick={handleSave}>Guardar</button>
-            <button onClick={() => setEditing(false)} style={{ marginLeft: 8 }}>Cancelar</button>
+            <button onClick={() => { setEditing(false); setEditAvatarFile(null); }} style={{ marginLeft: 8 }}>Cancelar</button>
           </div>
         ) : (
           <div>
@@ -158,49 +174,68 @@ export default function Profile({ token, backendUrl }) {
 
       <hr />
 
-      {/* Módulo de verificación */}
+      {/* Módulo de verificación como botón y documentos solo cuando el form está abierto */}
       <div>
         <h3>Verificación de identidad</h3>
-        {verification && verification.verified && <span style={{ color: "green" }}>✅ Verificado</span>}
-        <form onSubmit={handleVerifSubmit}>
-          <label>País/Nacionalidad:</label>
-          <select value={nationality} onChange={e => setNationality(e.target.value)} required>
-            <option value="">Selecciona tu país</option>
-            {countries.map(c => (
-              <option key={c.code} value={c.name}>
-                {c.emoji} {c.name}
-              </option>
-            ))}
-          </select>
-          <br />
-          <label>Tipo de documento:</label>
-          <select value={documentType} onChange={e => setDocumentType(e.target.value)} required>
-            <option value="">Selecciona tipo</option>
-            {documentOptions.map(opt => (
-              <option key={opt.value} value={opt.value}>{opt.label}</option>
-            ))}
-          </select>
-          <br />
-          <label>Foto (frontal):</label>
-          <input type="file" accept="image/*" onChange={e => setFront(e.target.files[0])} required />
-          <br />
-          <label>Foto (reverso):</label>
-          <input type="file" accept="image/*" onChange={e => setBack(e.target.files[0])} required />
-          <br />
-          <button type="submit">Enviar verificación</button>
-        </form>
-        {verifMsg && <p>{verifMsg}</p>}
-        {verification?.documentFront && (
-          <div>
-            <p>Documento frontal:</p>
-            <img src={`data:image/*;base64,${verification.documentFront}`} alt="Frontal" style={{maxWidth:200}} />
-          </div>
+        {verification && verification.verified ? (
+          <span style={{ color: "green" }}>✅ Verificado</span>
+        ) : (
+          <button
+            style={{
+              background: "#38a3f1",
+              color: "#fff",
+              border: "none",
+              borderRadius: "8px",
+              padding: "0.8em 1.2em",
+              fontWeight: "600",
+              fontSize: "1em",
+              cursor: "pointer",
+              marginBottom: "1em"
+            }}
+            onClick={() => setShowVerificationForm(!showVerificationForm)}
+          >
+            {showVerificationForm ? "Ocultar verificación" : "Iniciar verificación"}
+          </button>
         )}
-        {verification?.documentBack && (
-          <div>
-            <p>Documento reverso:</p>
-            <img src={`data:image/*;base64,${verification.documentBack}`} alt="Reverso" style={{maxWidth:200}} />
-          </div>
+        {showVerificationForm && (
+          <>
+            <form onSubmit={handleVerifSubmit} style={{marginTop: '1em'}}>
+              <label>País/Nacionalidad:</label>
+              <select value={nationality} onChange={e => setNationality(e.target.value)} required>
+                <option value="">Selecciona tu país</option>
+                {countries.map(c => (
+                  <option key={c.code} value={c.name}>
+                    {c.emoji} {c.name}
+                  </option>
+                ))}
+              </select>
+              <label>Tipo de documento:</label>
+              <select value={documentType} onChange={e => setDocumentType(e.target.value)} required>
+                <option value="">Selecciona tipo</option>
+                {documentOptions.map(opt => (
+                  <option key={opt.value} value={opt.value}>{opt.label}</option>
+                ))}
+              </select>
+              <label>Foto (frontal):</label>
+              <input type="file" accept="image/*" onChange={e => setFront(e.target.files[0])} required />
+              <label>Foto (reverso):</label>
+              <input type="file" accept="image/*" onChange={e => setBack(e.target.files[0])} required />
+              <button type="submit" style={{marginTop: '1em'}}>Enviar verificación</button>
+            </form>
+            {verifMsg && <p>{verifMsg}</p>}
+            {verification?.documentFront && (
+              <div>
+                <p>Documento frontal:</p>
+                <img src={`data:image/*;base64,${verification.documentFront}`} alt="Frontal" style={{maxWidth:200, border:'2px solid #38a3f1', borderRadius:'12px'}} />
+              </div>
+            )}
+            {verification?.documentBack && (
+              <div>
+                <p>Documento reverso:</p>
+                <img src={`data:image/*;base64,${verification.documentBack}`} alt="Reverso" style={{maxWidth:200, border:'2px solid #38a3f1', borderRadius:'12px'}} />
+              </div>
+            )}
+          </>
         )}
       </div>
 

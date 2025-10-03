@@ -14,11 +14,14 @@ router.get('/', auth, async (req, res) => {
 });
 
 // Editar datos del perfil (nombre, avatar)
+// Ahora acepta avatar como base64 (desde frontend), sin multer
 router.put('/', auth, async (req, res) => {
   const { name, avatar } = req.body;
   const user = await User.findById(req.user.id);
+
   if (name) user.name = name;
-  if (avatar) user.avatar = avatar;
+  if (avatar) user.avatar = avatar; // avatar puede ser base64 o url según lo envíe el frontend
+
   await user.save();
   res.json({ message: 'Perfil actualizado.' });
 });
