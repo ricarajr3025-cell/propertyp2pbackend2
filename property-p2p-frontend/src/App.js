@@ -18,7 +18,6 @@ import './App.css';
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [backendUrl, setBackendUrl] = useState('http://localhost:3005');
-
   useEffect(() => {
     getBackendPort().then(port => {
       setBackendUrl(`http://localhost:${port}`);

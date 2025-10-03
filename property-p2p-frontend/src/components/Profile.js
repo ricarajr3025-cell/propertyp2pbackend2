@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
+import Cropper from 'react-easy-crop';
 
 const countries = [
   { code: "CO", name: "Colombia", emoji: "🇨🇴" },
@@ -8,7 +9,6 @@ const countries = [
   { code: "ES", name: "España", emoji: "🇪🇸" },
   { code: "US", name: "Estados Unidos", emoji: "🇺🇸" },
   { code: "BR", name: "Brasil", emoji: "🇧🇷" }
-  // Agrega los países que desees
 ];
 
 const documentOptions = [
@@ -17,6 +17,34 @@ const documentOptions = [
   { value: "cedula_extranjeria", label: "Cédula de extranjería" },
 ];
 
+// Utilidad para recortar imagen
+function getCroppedImg(imageSrc, pixelCrop, outputSize = 300) {
+  return new Promise((resolve, reject) => {
+    const image = new window.Image();
+    image.crossOrigin = "Anonymous";
+    image.src = imageSrc;
+    image.onload = () => {
+      const canvas = document.createElement('canvas');
+      canvas.width = outputSize;
+      canvas.height = outputSize;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(
+        image,
+        pixelCrop.x,
+        pixelCrop.y,
+        pixelCrop.width,
+        pixelCrop.height,
+        0,
+        0,
+        outputSize,
+        outputSize
+      );
+      resolve(canvas.toDataURL('image/jpeg'));
+    };
+    image.onerror = error => reject(error);
+  });
+}
+
 export default function Profile({ token, backendUrl }) {
   const [user, setUser] = useState(null);
   const [properties, setProperties] = useState([]);
@@ -24,8 +52,13 @@ export default function Profile({ token, backendUrl }) {
   const [error, setError] = useState('');
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState('');
-  const [editAvatar, setEditAvatar] = useState('');
   const [editAvatarFile, setEditAvatarFile] = useState(null);
+
+  // Cropper states
+  const [showCropper, setShowCropper] = useState(false);
+  const [crop, setCrop] = useState({ x: 0, y: 0 });
+  const [zoom, setZoom] = useState(1);
+  const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
 
   // Verificación
   const [verification, setVerification] = useState(null);
@@ -36,58 +69,50 @@ export default function Profile({ token, backendUrl }) {
   const [verifMsg, setVerifMsg] = useState('');
   const [showVerificationForm, setShowVerificationForm] = useState(false);
 
+  const fetchProfile = async () => {
+    try {
+      const resUser = await axios.get(`${backendUrl}/api/profile`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setUser(resUser.data);
+      setEditName(resUser.data.name || '');
+      const resProp = await axios.get(`${backendUrl}/api/profile/properties`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setProperties(resProp.data);
+
+      const resTrans = await axios.get(`${backendUrl}/api/profile/transactions`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setTransactions(resTrans.data);
+
+      const resVerif = await axios.get(`${backendUrl}/api/profile/verify`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setVerification(resVerif.data);
+      setNationality(resVerif.data.nationality || '');
+      setDocumentType(resVerif.data.documentType || '');
+    } catch (e) {
+      setError('Error al cargar perfil.');
+    }
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        // Obtener perfil
-        const resUser = await axios.get(`${backendUrl}/api/profile`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setUser(resUser.data);
-        setEditName(resUser.data.name || '');
-        setEditAvatar(resUser.data.avatar || '');
-
-        // Propiedades propias
-        const resProp = await axios.get(`${backendUrl}/api/profile/properties`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setProperties(resProp.data);
-
-        // Transacciones propias
-        const resTrans = await axios.get(`${backendUrl}/api/profile/transactions`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setTransactions(resTrans.data);
-
-        // Verificación
-        const resVerif = await axios.get(`${backendUrl}/api/profile/verify`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setVerification(resVerif.data);
-        setNationality(resVerif.data.nationality || '');
-        setDocumentType(resVerif.data.documentType || '');
-      } catch (e) {
-        setError('Error al cargar perfil.');
-      }
-    };
-    fetchData();
+    fetchProfile();
+    // eslint-disable-next-line
   }, [token, backendUrl]);
-
-  // Convertir imagen a base64
-  const toBase64 = file =>
-    new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = error => reject(error);
-    });
 
   // Guardar cambios de perfil
   const handleSave = async () => {
     try {
-      let avatarData = editAvatar;
-      if (editAvatarFile) {
-        avatarData = await toBase64(editAvatarFile);
+      let avatarData = user?.avatar || '';
+      // Si hay cropper visible y archivo, recorta la imagen antes de guardar
+      if (editAvatarFile && croppedAreaPixels) {
+        avatarData = await getCroppedImg(
+          URL.createObjectURL(editAvatarFile),
+          croppedAreaPixels,
+          300
+        );
       }
       await axios.put(`${backendUrl}/api/profile`, {
         name: editName,
@@ -97,11 +122,23 @@ export default function Profile({ token, backendUrl }) {
       });
       setEditing(false);
       setError('');
-      setUser({ ...user, name: editName, avatar: avatarData });
       setEditAvatarFile(null);
+      setShowCropper(false);
+      setTimeout(fetchProfile, 300);
     } catch (e) {
       setError('No se pudo guardar los cambios.');
     }
+  };
+
+  const onCropComplete = useCallback((croppedArea, croppedAreaPixels) => {
+    setCroppedAreaPixels(croppedAreaPixels);
+  }, []);
+
+  const handleAvatarFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setEditAvatarFile(file);
+    setShowCropper(true);
   };
 
   // Enviar verificación
@@ -122,7 +159,6 @@ export default function Profile({ token, backendUrl }) {
       });
       setVerifMsg("¡Verificación enviada!");
       setShowVerificationForm(false);
-      // Actualiza verificación
       const resVerif = await axios.get(`${backendUrl}/api/profile/verify`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -140,7 +176,8 @@ export default function Profile({ token, backendUrl }) {
       {error && <p style={{ color: 'red' }}>{error}</p>}
       <div className="profile-info" style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
         <img
-          src={user.avatar ? user.avatar : 'https://ui-avatars.com/api/?name=' + (user.name || user.email)}
+          key={user.avatar}
+          src={user.avatar && user.avatar.startsWith('data:image') ? user.avatar : 'https://ui-avatars.com/api/?name=' + (user.name || user.email)}
           alt="Avatar"
           className="profile-avatar"
           style={{ width: 100, height: 100, borderRadius: '50%', objectFit: 'cover', background: '#191a1c', border: '2px solid #38a3f1' }}
@@ -157,11 +194,43 @@ export default function Profile({ token, backendUrl }) {
             <input
               type="file"
               accept="image/*"
-              onChange={e => setEditAvatarFile(e.target.files[0])}
+              onChange={handleAvatarFileChange}
               style={{ marginBottom: 8 }}
             />
+            {showCropper && editAvatarFile && (
+              <div style={{ position: 'relative', width: 300, height: 300, background: '#222', marginBottom: 12 }}>
+                <Cropper
+                  image={URL.createObjectURL(editAvatarFile)}
+                  crop={crop}
+                  zoom={zoom}
+                  aspect={1}
+                  onCropChange={setCrop}
+                  onZoomChange={setZoom}
+                  onCropComplete={onCropComplete}
+                />
+                <div style={{ marginTop: 10 }}>
+                  <input
+                    type="range"
+                    min={1}
+                    max={3}
+                    step={0.01}
+                    value={zoom}
+                    onChange={e => setZoom(Number(e.target.value))}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowCropper(false);
+                      setEditAvatarFile(null);
+                    }}
+                    style={{ marginLeft: 8 }}
+                  >Cancelar recorte</button>
+                </div>
+              </div>
+            )}
+            {/* No hay botón de "Recortar foto", el recorte se hace con Guardar */}
             <button onClick={handleSave}>Guardar</button>
-            <button onClick={() => { setEditing(false); setEditAvatarFile(null); }} style={{ marginLeft: 8 }}>Cancelar</button>
+            <button onClick={() => { setEditing(false); setEditAvatarFile(null); setShowCropper(false); }} style={{ marginLeft: 8 }}>Cancelar</button>
           </div>
         ) : (
           <div>
@@ -174,7 +243,6 @@ export default function Profile({ token, backendUrl }) {
 
       <hr />
 
-      {/* Módulo de verificación como botón y documentos solo cuando el form está abierto */}
       <div>
         <h3>Verificación de identidad</h3>
         {verification && verification.verified ? (
