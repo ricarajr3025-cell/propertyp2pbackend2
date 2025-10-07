@@ -5,6 +5,11 @@ const PropertySchema = new mongoose.Schema({
   description: String,
   price: Number,
   location: String,
+  propertyType: {
+    type: String,
+    enum: ['Casa', 'Lote', 'Apartamento', 'Edificio', 'Local Comercial'],
+    required: true
+  },
   images: [String],
   available: { type: Boolean, default: true }
 });
