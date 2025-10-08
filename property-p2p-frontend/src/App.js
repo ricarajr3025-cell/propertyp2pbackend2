@@ -27,13 +27,7 @@ function App() {
   return (
     <Router>
       <Header token={token} />
-      <div className="main-banner">
-        <img src="/banner.jpg" alt="Banner" className="banner-img" />
-        <div className="banner-text">
-          <h1>Bienvenido a PropertyP2P</h1>
-          <p>Compra, vende o alquila propiedades de forma segura y directa.</p>
-        </div>
-      </div>
+      {/* Elimina el banner duplicado de aquí */}
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login setToken={setToken} backendUrl={backendUrl} />} />
