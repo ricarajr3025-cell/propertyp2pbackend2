@@ -15,11 +15,26 @@ export default function TransactionSection({ token, backendUrl }) {
     }).then(res => setTransactions(res.data));
   }, [token, selectedTx, backendUrl]);
 
+  // Simulación de pago en testnet
+  const payTransaction = async (tx) => {
+    alert('Simulando pago en testnet Ethereum (USDT ficticio)...');
+    try {
+      await axios.post(`${backendUrl}/api/transactions/${tx._id}/pay`, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      alert('Pago simulado realizado. Ahora puedes liberar fondos.');
+      setSelectedTx(null); // refresca
+    } catch (err) {
+      alert('Error al simular pago');
+    }
+  };
+
   const releaseFunds = async (tx) => {
     await axios.post(`${backendUrl}/api/transactions/${tx._id}/release`, {}, {
       headers: { Authorization: `Bearer ${token}` }
     });
     alert('Fondos liberados');
+    setSelectedTx(null); // refresca
   };
 
   const appeal = async (tx) => {
@@ -28,6 +43,7 @@ export default function TransactionSection({ token, backendUrl }) {
       headers: { Authorization: `Bearer ${token}` }
     });
     alert('Apelación enviada');
+    setSelectedTx(null); // refresca
   };
 
   return (
@@ -38,8 +54,12 @@ export default function TransactionSection({ token, backendUrl }) {
           <li key={tx._id}>
             <span>{tx.property.title} - Estado: {tx.status}</span>
             <button onClick={() => setSelectedTx(tx)}>Ver Chat</button>
-            {/* Liberar fondos solo si el usuario es el comprador, la transacción está pendiente y el escrow está activo */}
-            {tx.buyer._id === userId && tx.status === 'pending' && tx.escrow &&
+            {/* Botón de pago SOLO si es comprador y la transacción está pendiente */}
+            {tx.buyer._id === userId && tx.status === 'pending' && !tx.paid &&
+              <button onClick={() => payTransaction(tx)}>Realizar Pago</button>
+            }
+            {/* Liberar fondos SOLO si es comprador, transacción pagada y escrow activo */}
+            {tx.buyer._id === userId && tx.status === 'paid' && tx.escrow &&
               <button onClick={() => releaseFunds(tx)}>Liberar Fondos</button>
             }
             {/* Apelar si la transacción está pendiente */}

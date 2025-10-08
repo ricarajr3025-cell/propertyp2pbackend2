@@ -15,7 +15,7 @@ module.exports = function(io) {
     if (String(property.owner) === String(req.user.id)) {
       return res.status(400).json({ message: 'No puedes comprar tu propia propiedad.' });
     }
-
+       
     const transaction = new Transaction({
       property: property._id,
       buyer: req.user.id,
@@ -27,6 +27,22 @@ module.exports = function(io) {
     await property.save();
     await transaction.save();
     res.json(transaction);
+  });
+
+  // Simular pago en testnet (nuevo endpoint)
+  router.post('/:id/pay', auth, async (req, res) => {
+    const tx = await Transaction.findById(req.params.id);
+    if (!tx) return res.status(404).json({ message: 'No existe la transacción' });
+    if (tx.buyer.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Solo el comprador puede pagar.' });
+    }
+    if (tx.status !== 'pending') {
+      return res.status(400).json({ message: 'La transacción ya fue pagada o completada.' });
+    }
+    tx.status = 'paid';
+    tx.paid = true;
+    await tx.save();
+    res.json({ message: 'Pago simulado realizado', transaction: tx });
   });
 
   // Obtener transacciones del usuario
