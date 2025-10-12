@@ -1,0 +1,40 @@
+.publish-form-container {
+  max-width: 440px;
+  margin: auto;
+  background: #fff;
+  padding: 28px 20px 36px 20px;
+  border-radius: 18px;
+  box-shadow: 0 2px 14px #0001;
+}
+.publish-form input,
+.publish-form textarea,
+.publish-form select {
+  width: 100%;
+  margin-bottom: 12px;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px solid #bbb;
+}
+.publish-form button {
+  background: #6C2DC7;
+  color: #fff;
+  border: none;
+  border-radius: 22px;
+  padding: 13px 0;
+  font-size: 1.08em;
+  font-weight: 600;
+  width: 100%;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: background .15s;
+}
+.success-msg {
+  color: #30a730;
+  margin-top: 8px;
+  font-weight: 500;
+}
+.error-msg {
+  color: #d92c2c;
+  margin-top: 8px;
+  font-weight: 500;
+}

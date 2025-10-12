@@ -1,0 +1,68 @@
+.publish-ad-type-container {
+  max-width: 420px;
+  margin: auto;
+  padding: 32px 0;
+}
+.publish-ad-type-list {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 24px;
+}
+.publish-ad-type-btn {
+  background: #222;
+  color: #fff;
+  border: none;
+  border-radius: 16px;
+  padding: 18px 18px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 2px 10px #0002;
+  transition: background 0.13s;
+}
+.publish-ad-type-btn:hover {
+  background: #333;
+}
+.publish-ad-type-icon {
+  font-size: 2.2em;
+  margin-right: 18px;
+  background: #333;
+  border-radius: 50%;
+  padding: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.publish-ad-type-label {
+  font-weight: 600;
+  font-size: 1.17em;
+  margin-bottom: 2px;
+}
+.publish-ad-type-desc {
+  font-size: 1em;
+  color: #ccc;
+}
+
+/* Opciones anidadas para casas */
+.home-options {
+  display: flex;
+  gap: 18px;
+  margin: 18px 0 0 0;
+  justify-content: center;
+}
+.home-option-btn {
+  background: #6C2DC7;
+  color: #fff;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 26px;
+  font-size: 1em;
+  font-weight: 500;
+  cursor: pointer;
+  box-shadow: 0 2px 8px #0001;
+  transition: background .15s;
+}
+.home-option-btn:hover {
+  background: #512E8C;
+}

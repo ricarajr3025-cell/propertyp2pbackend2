@@ -32,10 +32,10 @@ export default function Header({ token }) {
           </button>
           <nav>
             <Link to="/" onClick={() => setMenuOpen(false)}>Inicio</Link>
-            <Link to="/properties" onClick={() => setMenuOpen(false)}>Buscar Propiedad</Link>
+            <Link to="/marketplace" onClick={() => setMenuOpen(false)}>Buscar</Link>
             {!token && <Link to="/login" onClick={() => setMenuOpen(false)}>Login</Link>}
             {!token && <Link to="/register" onClick={() => setMenuOpen(false)}>Registro</Link>}
-            {token && <Link to="/publish" onClick={() => setMenuOpen(false)}>Registrar Propiedad</Link>}
+            {token && <Link to="/publish" onClick={() => setMenuOpen(false)}>Publicar Anuncio</Link>}
             {token && <Link to="/profile" onClick={() => setMenuOpen(false)}>Perfil</Link>}
             {token && <Link to="/transactions" onClick={() => setMenuOpen(false)}>Transacciones</Link>}
             {token && (

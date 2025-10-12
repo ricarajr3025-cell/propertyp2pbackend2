@@ -7,7 +7,7 @@ const PropertySchema = new mongoose.Schema({
   location: String,
   propertyType: {
     type: String,
-    enum: ['Casa', 'Lote', 'Apartamento', 'Edificio', 'Local Comercial'],
+    enum: ['Casa', 'Lote', 'Apartamento', 'Edificio', 'Local Comercial', 'Bodega' ],
     required: true
   },
   images: [String],

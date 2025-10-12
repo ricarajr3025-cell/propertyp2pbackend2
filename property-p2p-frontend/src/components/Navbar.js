@@ -19,10 +19,10 @@ export default function Navbar({ token, setToken }) {
           <button className="close-btn" onClick={() => setOpen(false)}>×</button>
           <ul>
             <li><Link to="/" onClick={() => setOpen(false)}>Inicio</Link></li>
-            <li><Link to="/properties" onClick={() => setOpen(false)}>Buscar Propiedad</Link></li>
+            <li><Link to="/properties" onClick={() => setOpen(false)}>Buscar</Link></li>
             {!token && <li><Link to="/login" onClick={() => setOpen(false)}>Login</Link></li>}
             {!token && <li><Link to="/register" onClick={() => setOpen(false)}>Registro</Link></li>}
-            {!token && <li><Link to="/publish" onClick={() => setOpen(false)}>Registrar Propiedad</Link></li>}
+            {!token && <li><Link to="/publish" onClick={() => setOpen(false)}>Publicar</Link></li>}
             {token && <li><Link to="/profile" onClick={() => setOpen(false)}>Perfil</Link></li>}
             {token && <li><Link to="/transactions" onClick={() => setOpen(false)}>Transacciones</Link></li>}
             {token && <li><Link to="/publish" onClick={() => setOpen(false)}>Publicar</Link></li>}
