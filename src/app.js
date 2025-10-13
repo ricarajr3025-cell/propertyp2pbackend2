@@ -14,7 +14,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/properties', require('./routes/property'));
 app.use('/api/rental-properties', require('./routes/rentalProperty'));
 app.use('/api/profile', profileRoutes);
-
+app.use('/api/vehicles', require('./routes/vehicle'));
 // NO montes rutas que necesitan io aquí. 
 // app.use('/api/rental-transactions', rentalTransactionRoutes(io)); // <-- ELIMINADO
 

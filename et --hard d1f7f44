@@ -1,0 +1,21 @@
+[33md1f7f44[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m se agrego boton de cancelar al transaccionar
+[33m996f17a[m Se ajusto la busqueda de propiedades por renta y por venta y las trandacciones
+[33m5d0cbd8[m Nuevos ajustes se cambio el modelo de solo propiedades a Marketplace completo
+[33m6efdcc1[m Se ajusto el modulo de transacciones
+[33ma8ce135[m se elimino el boton de contactar al vendedor
+[33ma773bbd[m se agrego la opcion de subir fotos en la publicacion de propiedades
+[33m5310a77[m ajustes en el perfil al subir fotos poder recortar fotos
+[33mc858b08[m cambios al subut la foto de perfil y en el boton de autenticacion
+[33mf79c5e6[m ajustes de perfil y barra de hamburguesa mas verificacion de usuario
+[33ma23788d[m se agrego la opcion de verificacion de usuario
+[33m42fcb4f[m Se añadio el modulo de perfil de usuario
+[33m6589295[m se agrego confirmacion de contraseña
+[33m74a950a[m cambio de menu hamburguesa cierra y abre desde el mismo icono
+[33mec94943[m Ultima actualizacion se arreglo el menu hamburguesa y se escondieron funciones de usuarios no registrados
+[33m160538a[m Banner arreglado
+[33m584d33a[m cambios en el front banner de navegacion
+[33ma8d0e43[m Ultima version
+[33m937aebe[m Integrar adjuntos en chat, liberar fondos por comprador, servir archivos y mejoras frontend
+[33m54dd495[m prueba mas resiente todo ok
+[33m5adb316[m Agrego mejoras en chat, admin y ajustes en lógica
+[33mad59e2e[m Primer commit

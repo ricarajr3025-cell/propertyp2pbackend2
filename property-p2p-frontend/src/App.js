@@ -21,8 +21,6 @@ import PublishItem from "./components/PublishItem";
 import PublishVehicle from "./components/PublishVehicle";
 import RentalPropertyList from "./components/RentalPropertyList";
 
-
-
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [backendUrl, setBackendUrl] = useState('http://localhost:3005');
@@ -40,7 +38,7 @@ function App() {
         <Route path="/login" element={<Login setToken={setToken} backendUrl={backendUrl} />} />
         <Route path="/forgot-password" element={<ForgotPassword backendUrl={backendUrl} />} />
         <Route path="/reset-password" element={<ResetPassword backendUrl={backendUrl} />} />
-        <Route path="/marketplace" element={<Marketplace />} />
+        <Route path="/marketplace" element={<Marketplace backendUrl={backendUrl} />} /> {/* AJUSTE AQUÍ */}
         <Route path="/register" element={<Register setToken={setToken} backendUrl={backendUrl} />} />
         <Route path="/properties" element={token ? <PropertyList token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />
         <Route path="/publish" element={token ? <PublishAdType /> : <Navigate to="/login" />} />
