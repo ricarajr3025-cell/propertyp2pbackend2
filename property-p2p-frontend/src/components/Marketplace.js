@@ -29,7 +29,7 @@ export default function Marketplace() {
   const [showPropertyOptions, setShowPropertyOptions] = useState(false);
   const navigate = useNavigate();
 
-  // Filtrar por categoría
+  // Filtrar por categoría para mock/demo
   const listings = selected
     ? mockListings.filter(l => l.category === selected)
     : mockListings;
@@ -80,7 +80,7 @@ export default function Marketplace() {
           </button>
           <button
             className="property-option-btn"
-            onClick={() => navigate("/publish/homes/rent")}
+            onClick={() => navigate("/rental-properties")}
           >
             Propiedades en alquiler
           </button>

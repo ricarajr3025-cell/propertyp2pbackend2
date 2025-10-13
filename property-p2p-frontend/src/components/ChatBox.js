@@ -2,11 +2,24 @@ import React, { useEffect, useState, useRef } from 'react';
 import io from "socket.io-client";
 import axios from "axios";
 
+// transaction: objeto de transacción
+// token: JWT del usuario
+// userId: id del usuario actual
+// backendUrl: url del backend
+
 export default function ChatBox({ transaction, token, userId, backendUrl }) {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [file, setFile] = useState(null);
+  const [paid, setPaid] = useState(transaction.paid || false);
   const socketRef = useRef();
+
+  // Detecta si es una transacción de alquiler (renta) por endpoint usado
+  // Puedes adaptar esto según tu lógica, aquí solo lo hacemos por el nombre de la propiedad
+  const isRentalTransaction =
+    transaction.propertyType === "Rental" ||
+    transaction.property?.modelName === "RentalProperty" ||
+    transaction.operationType === "Renta";
 
   useEffect(() => {
     socketRef.current = io(backendUrl, {
@@ -20,14 +33,22 @@ export default function ChatBox({ transaction, token, userId, backendUrl }) {
       setMessages((prev) => [...prev, msg]);
     });
 
-    axios.get(`${backendUrl}/api/transactions/${transaction._id}/chat`, {
+    // Carga el historial del chat
+    let chatUrl;
+    if (isRentalTransaction) {
+      chatUrl = `${backendUrl}/api/rental-transactions/${transaction._id}/chat`;
+    } else {
+      chatUrl = `${backendUrl}/api/transactions/${transaction._id}/chat`;
+    }
+
+    axios.get(chatUrl, {
       headers: { Authorization: `Bearer ${token}` }
     }).then(res => setMessages(res.data));
 
     return () => {
       socketRef.current.disconnect();
     };
-  }, [transaction._id, backendUrl, token, userId]);
+  }, [transaction._id, backendUrl, token, userId, isRentalTransaction]);
 
   const sendMessage = async () => {
     if (file) {
@@ -35,7 +56,15 @@ export default function ChatBox({ transaction, token, userId, backendUrl }) {
       const data = new FormData();
       data.append('file', file);
       data.append('message', input);
-      await axios.post(`${backendUrl}/api/transactions/${transaction._id}/chat/upload`, data, {
+
+      let uploadUrl;
+      if (isRentalTransaction) {
+        uploadUrl = `${backendUrl}/api/rental-transactions/${transaction._id}/chat/upload`;
+      } else {
+        uploadUrl = `${backendUrl}/api/transactions/${transaction._id}/chat/upload`;
+      }
+
+      await axios.post(uploadUrl, data, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setFile(null);
@@ -47,6 +76,20 @@ export default function ChatBox({ transaction, token, userId, backendUrl }) {
         message: input,
       });
       setInput("");
+    }
+  };
+
+  // Marcar pagado (solo para renta y si no está pagado)
+  const markPaid = async () => {
+    try {
+      const payUrl = `${backendUrl}/api/rental-transactions/${transaction._id}/pay`;
+      await axios.post(payUrl, {}, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setPaid(true);
+      alert("Pago de renta marcado");
+    } catch (e) {
+      alert("No se pudo marcar pagado");
     }
   };
 
@@ -94,6 +137,20 @@ export default function ChatBox({ transaction, token, userId, backendUrl }) {
       {file && (
         <div style={{ marginBottom: 5 }}>
           <small>Archivo seleccionado: {file.name}</small>
+        </div>
+      )}
+      {/* Botón para marcar pagado si es renta y aún no está pagado */}
+      {isRentalTransaction && transaction.status === "pending" && !paid && (
+        <button
+          onClick={markPaid}
+          style={{ marginTop: 8, background: "#6C2DC7", color: "#fff", borderRadius: 8, padding: "7px 18px", fontWeight: "bold" }}
+        >
+          Marcar pago de renta
+        </button>
+      )}
+      {isRentalTransaction && (paid || transaction.status === "paid") && (
+        <div style={{ marginTop: 8, color: "#6C2DC7", fontWeight: "bold" }}>
+          Pago de renta marcado
         </div>
       )}
     </div>

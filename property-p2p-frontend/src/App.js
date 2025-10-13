@@ -19,6 +19,9 @@ import Marketplace from "./components/Marketplace";
 import PublishAdType from "./components/PublishAdType";
 import PublishItem from "./components/PublishItem";
 import PublishVehicle from "./components/PublishVehicle";
+import RentalPropertyList from "./components/RentalPropertyList";
+
+
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -42,6 +45,7 @@ function App() {
         <Route path="/properties" element={token ? <PropertyList token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />
         <Route path="/publish" element={token ? <PublishAdType /> : <Navigate to="/login" />} />
         <Route path="/publish/items" element={token ? <PublishItem token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />
+        <Route path="/rental-properties" element={token ? <RentalPropertyList token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />
         <Route path="/publish/vehicles" element={token ? <PublishVehicle token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />
         <Route path="/publish/homes/sale" element={token ? <PublishPropertySale token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />
         <Route path="/publish/homes/rent" element={token ? <PublishPropertyRent token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />

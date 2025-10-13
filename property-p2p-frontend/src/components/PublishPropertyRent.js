@@ -21,11 +21,11 @@ export default function PublishPropertyRent({ token, backendUrl }) {
       formData.append('location', location);
       formData.append('propertyType', propertyType);
       formData.append('price', price);
-      formData.append('operationType', 'Renta');
       for (let i = 0; i < images.length; i++) {
         formData.append('images', images[i]);
       }
-      await axios.post(`${backendUrl}/api/properties`, formData, {
+      // ENVÍA AL ENDPOINT DE ALQUILER
+      await axios.post(`${backendUrl}/api/rental-properties`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'
