@@ -1,0 +1,136 @@
+.vehicle-detail-main {
+  background: #232323;
+  color: #fff;
+  border-radius: 16px;
+  max-width: 700px;
+  margin: 30px auto;
+  box-shadow: 0 2px 18px #0007;
+  padding: 0 0 18px 0;
+  position: relative;
+}
+.vehicle-detail-close {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  font-size: 2.2em;
+  background: none;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  z-index: 10;
+}
+.vehicle-detail-gallery {
+  padding: 14px 14px 0 14px;
+}
+.vehicle-detail-img {
+  width: 100%;
+  max-height: 350px;
+  object-fit: cover;
+  border-radius: 14px;
+  margin-bottom: 12px;
+  background: #333;
+}
+.vehicle-detail-thumbs {
+  display: flex;
+  gap: 6px;
+  justify-content: center;
+}
+.vehicle-detail-thumb {
+  width: 52px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+  cursor: pointer;
+  border: 2px solid #555;
+  opacity: 0.8;
+}
+.vehicle-detail-thumb.selected {
+  border: 2.5px solid #6C2DC7;
+  opacity: 1;
+}
+.vehicle-detail-info {
+  padding: 0 18px;
+}
+.vehicle-detail-title {
+  font-size: 1.4em;
+  font-weight: 600;
+  margin: 8px 0 2px 0;
+}
+.vehicle-detail-price {
+  color: #6C2DC7;
+  font-size: 1.25em;
+  font-weight: bold;
+  margin-bottom: 3px;
+}
+.vehicle-detail-meta {
+  font-size: 0.97em;
+  color: #ccc;
+  margin-bottom: 10px;
+  display: flex;
+  gap: 22px;
+}
+.vehicle-detail-chat {
+  background: #191919;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.send-btn {
+  background: #1877F2;
+  color: #fff;
+  border-radius: 22px;
+  border: none;
+  padding: 0 22px;
+  font-size: 1em;
+  font-weight: 500;
+  cursor: pointer;
+}
+.vehicle-chat-msg {
+  margin-top: 6px;
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+.vehicle-chat-msg-me {
+  background: #512E8C;
+  text-align: right;
+}
+.vehicle-chat-msg-them {
+  background: #333;
+  text-align: left;
+}
+.vehicle-detail-whatsapp {
+  display: block;
+  margin: 12px 0;
+  background: #25D366;
+  color: #fff;
+  text-align: center;
+  border-radius: 22px;
+  padding: 10px;
+  font-weight: 600;
+  text-decoration: none;
+}
+.vehicle-detail-desc {
+  background: #191919;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+.vehicle-detail-actions {
+  display: flex;
+  gap: 16px;
+  padding: 12px 18px;
+  justify-content: center;
+}
+.vehicle-detail-action {
+  background: #191919;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 6px 16px;
+  font-size: 1em;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}

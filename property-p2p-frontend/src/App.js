@@ -20,16 +20,17 @@ import PublishAdType from "./components/PublishAdType";
 import PublishItem from "./components/PublishItem";
 import PublishVehicle from "./components/PublishVehicle";
 import RentalPropertyList from "./components/RentalPropertyList";
+import VehicleDetail from "./components/VehicleDetail";
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
+  const [userId, setUserId] = useState(localStorage.getItem('userId')); // <-- AGREGADO AQUÍ
   const [backendUrl, setBackendUrl] = useState('http://localhost:3005');
   useEffect(() => {
     getBackendPort().then(port => {
       setBackendUrl(`http://localhost:${port}`);
     });
   }, []);
-
   return (
     <Router>
       <Header token={token} />
@@ -38,18 +39,19 @@ function App() {
         <Route path="/login" element={<Login setToken={setToken} backendUrl={backendUrl} />} />
         <Route path="/forgot-password" element={<ForgotPassword backendUrl={backendUrl} />} />
         <Route path="/reset-password" element={<ResetPassword backendUrl={backendUrl} />} />
-        <Route path="/marketplace" element={<Marketplace backendUrl={backendUrl} />} /> {/* AJUSTE AQUÍ */}
+        <Route path="/marketplace" element={<Marketplace backendUrl={backendUrl} />} />
         <Route path="/register" element={<Register setToken={setToken} backendUrl={backendUrl} />} />
         <Route path="/properties" element={token ? <PropertyList token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />
         <Route path="/publish" element={token ? <PublishAdType /> : <Navigate to="/login" />} />
         <Route path="/publish/items" element={token ? <PublishItem token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />
-        <Route path="/rental-properties" element={token ? <RentalPropertyList token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />
+        <Route path="/rental-properties" element={token ? <RentalPropertyList token={token} backendUrl={backendUrl} userId={userId} /> : <Navigate to="/login" />} />
         <Route path="/publish/vehicles" element={token ? <PublishVehicle token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />
         <Route path="/publish/homes/sale" element={token ? <PublishPropertySale token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />
         <Route path="/publish/homes/rent" element={token ? <PublishPropertyRent token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />
         <Route path="/transactions" element={token ? <TransactionSection token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />
         <Route path="/profile" element={token ? <Profile token={token} backendUrl={backendUrl} /> : <Navigate to="/login" />} />
         <Route path="/admin" element={<AdminPanel />} />
+        <Route path="/vehicle/:id" element={<VehicleDetail backendUrl={backendUrl} token={token} userId={userId} />} />
       </Routes>
       <Footer />
     </Router>

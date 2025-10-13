@@ -7,12 +7,13 @@ const mongoose = require('mongoose');
 const portfinder = require('portfinder');
 const path = require('path');
 const Transaction = require('./models/Transaction');
-const RentalChat = require('./models/RentalChat'); // Nuevo modelo para chat de alquiler
+const RentalChat = require('./models/RentalChat');
+const VehicleChat = require('./models/VehicleChat'); // Modelo de chat de vehículos
 
 // Servir archivos subidos de la carpeta uploads
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
 
-// servir /public estático
+// Servir /public estático
 app.use(express.static(path.join(__dirname, '..', 'public'), { index: 'index.html' }));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, '..', 'public', 'index.html')));
 
@@ -78,6 +79,33 @@ io.on('connection', (socket) => {
     io.to(chatId).emit("rental-chat:message", chatMsg);
   });
 
+  // --- Chat en tiempo real para vehículos ---
+  socket.on('join-vehicle-chat', async ({ chatId }) => {
+    socket.join(chatId);
+    console.log(`Usuario ${socket.id} se unió al chat de vehículo ${chatId}`);
+  });
+
+  socket.on('vehicle-chat:message', async ({ chatId, sender, receiver, message }) => {
+    const chatMsg = {
+      sender,
+      receiver,
+      message,
+      timestamp: new Date()
+    };
+    let chat = await VehicleChat.findOne({ chatId });
+    if (chat) {
+      chat.messages.push(chatMsg);
+      await chat.save();
+    } else {
+      await VehicleChat.create({
+        chatId,
+        messages: [chatMsg]
+      });
+    }
+    io.to(chatId).emit("vehicle-chat:message", chatMsg);
+    console.log('Mensaje enviado y guardado en vehículo', { chatId, sender, receiver, message });
+  });
+
   socket.on('disconnect', () => {
     console.log('Usuario desconectado:', socket.id);
   });
@@ -102,6 +130,9 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/property-
 
     // Ruta para chat previo de alquiler
     app.use('/api/rental-chat', require('./routes/rentalChat'));
+
+    // Ruta para chat de vehículos
+    app.use('/api/vehicle-chat', require('./routes/vehicleChat'));
 
     // exponer puerto actual
     app.get('/api/port', (req, res) => res.json({ port: PORT }));

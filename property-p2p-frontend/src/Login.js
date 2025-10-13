@@ -1,36 +1,51 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNavigate, Link } from 'react-router-dom';
 
 export default function Login({ setToken, backendUrl }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [msg, setMsg] = useState('');
+  const navigate = useNavigate();
 
-  const login = async () => {
+  const submit = async (e) => {
+    e.preventDefault();
     try {
       const res = await axios.post(`${backendUrl}/api/auth/login`, { email, password });
-      localStorage.setItem('token', res.data.token);
       setToken(res.data.token);
-    } catch (e) {
-      alert('Credenciales inválidas');
+      // Guarda el token Y el userId en localStorage (imprescindible para chat)
+      localStorage.setItem('token', res.data.token);
+      localStorage.setItem('userId', res.data.userId); // <--- ¡Agregado!
+      navigate('/properties');
+    } catch (err) {
+      setMsg(err.response?.data?.message || 'Error de autenticación');
     }
   };
 
   return (
     <div>
       <h2>Iniciar sesión</h2>
-      <input
-        type="email"
-        placeholder="Correo electrónico"
-        value={email}
-        onChange={e => setEmail(e.target.value)}
-      />
-      <input
-        type="password"
-        placeholder="Contraseña"
-        value={password}
-        onChange={e => setPassword(e.target.value)}
-      />
-      <button onClick={login}>Login</button>
+      <form onSubmit={submit}>
+        <input
+          type="email"
+          placeholder="Correo"
+          value={email}
+          onChange={e => setEmail(e.target.value)}
+          required
+        /><br />
+        <input
+          type="password"
+          placeholder="Contraseña"
+          value={password}
+          onChange={e => setPassword(e.target.value)}
+          required
+        /><br />
+        <button type="submit">Ingresar</button>
+      </form>
+      {msg && <p style={{ color: "red" }}>{msg}</p>}
+      <div style={{ marginTop: '10px' }}>
+        <Link to="/forgot-password">¿Olvidaste tu contraseña?</Link>
+      </div>
     </div>
   );
 }

@@ -205,7 +205,12 @@ export default function Marketplace({ backendUrl }) {
         <div className="marketplace-listings">
           {filteredVehicles.length === 0 && <div style={{padding:"32px", textAlign:"center", color:"#888"}}>No hay vehículos publicados.</div>}
           {filteredVehicles.map(item => (
-            <div key={item._id} className="marketplace-card">
+            <div
+              key={item._id}
+              className="marketplace-card"
+              onClick={() => navigate(`/vehicle/${item._id}`)} // <-- CORRECCIÓN: Navega al detalle del vehículo
+              style={{ cursor: "pointer" }}
+            >
               <img src={item.images?.[0] ? `${backendUrl}/${item.images[0]}` : "/demo/mazda.jpg"} alt={item.title} className="marketplace-img" />
               <div className="marketplace-info">
                 <div className="marketplace-title">{item.title}</div>

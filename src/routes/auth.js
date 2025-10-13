@@ -89,10 +89,10 @@ router.post('/register', async (req, res) => {
   // Crea el token JWT
   const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET);
 
-  res.json({ token });
+  res.json({ token, userId: user._id, email: user.email }); // <-- ENVÍA el userId
 });
 
-// Login
+// Login (CORREGIDO: ENVÍA userId!)
 router.post('/login', async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
@@ -100,7 +100,7 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({ message: 'Credenciales inválidas' });
   }
   const token = jwt.sign({ id: user._id, email: user.email }, JWT_SECRET);
-  res.json({ token });
+  res.json({ token, userId: user._id, email: user.email }); // <-- ENVÍA userId
 });
 
 module.exports = router;

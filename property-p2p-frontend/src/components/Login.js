@@ -14,6 +14,7 @@ export default function Login({ setToken, backendUrl }) {
       const res = await axios.post(`${backendUrl}/api/auth/login`, { email, password });
       setToken(res.data.token);
       localStorage.setItem('token', res.data.token);
+      localStorage.setItem('userId', res.data.userId); // <-- ¡Esto hace funcionar el chat!
       navigate('/properties');
     } catch (err) {
       setMsg(err.response?.data?.message || 'Error de autenticación');
