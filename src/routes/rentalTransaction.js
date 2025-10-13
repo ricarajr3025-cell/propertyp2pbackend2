@@ -11,7 +11,6 @@ module.exports = function(io) {
   // Listar transacciones de alquiler del usuario
   router.get('/', auth, async (req, res) => {
     try {
-      // Solo transacciones de tipo 'alquiler'
       const txs = await Transaction.find({
         $or: [{ buyer: req.user.id }, { seller: req.user.id }],
         type: 'alquiler'
@@ -35,14 +34,12 @@ module.exports = function(io) {
       if (String(property.owner) === String(req.user.id)) {
         return res.status(400).json({ message: 'No puedes rentar tu propia propiedad.' });
       }
-
-      // Buscar el chat previo y migrar mensajes
       const chatId = `rentalchat-${property._id}-${req.user.id}-${property.owner}`;
       const rentalChat = await RentalChat.findOne({ chatId });
 
       const transaction = new Transaction({
         property: property._id,
-        propertyModel: 'RentalProperty', // Para refPath
+        propertyModel: 'RentalProperty',
         type: 'alquiler',
         buyer: req.user.id,
         seller: property.owner,
@@ -50,13 +47,8 @@ module.exports = function(io) {
         escrow: true,
         chatHistory: rentalChat ? rentalChat.messages : []
       });
-      property.available = false;
-      await property.save();
+
       await transaction.save();
-
-      // (Opcional) Eliminar el RentalChat si no se necesita más
-      // if (rentalChat) await rentalChat.deleteOne();
-
       res.json(transaction);
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -65,7 +57,7 @@ module.exports = function(io) {
 
   // Marcar pagado
   router.post('/:id/pay', auth, async (req, res) => {
-    const tx = await Transaction.findById(req.params.id);
+    const tx = await Transaction.findById(req.params.id).populate('property');
     if (!tx) return res.status(404).json({ message: 'No existe la transacción' });
     if (tx.buyer.toString() !== req.user.id) {
       return res.status(403).json({ message: 'Solo el arrendatario puede marcar pagado.' });
@@ -76,7 +68,36 @@ module.exports = function(io) {
     tx.status = 'paid';
     tx.paid = true;
     await tx.save();
+
+    // Marcar la propiedad como NO disponible
+    if (tx.property) {
+      tx.property.available = false;
+      await tx.property.save();
+    }
+
     res.json({ message: 'Pago de renta realizado', transaction: tx });
+  });
+
+  // Cancelar transacción de alquiler
+  router.post('/:id/cancel', auth, async (req, res) => {
+    const tx = await Transaction.findById(req.params.id).populate('property');
+    if (!tx) return res.status(404).json({ message: 'No existe la transacción' });
+    if (tx.buyer.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'Solo el arrendatario puede cancelar la transacción.' });
+    }
+    if (tx.status !== 'pending') {
+      return res.status(400).json({ message: 'Solo se puede cancelar una transacción pendiente.' });
+    }
+    tx.status = 'cancelled';
+    await tx.save();
+
+    // Marcar propiedad como disponible otra vez
+    if (tx.property) {
+      tx.property.available = true;
+      await tx.property.save();
+    }
+
+    res.json({ message: 'Transacción cancelada', transaction: tx });
   });
 
   // Apelar transacción

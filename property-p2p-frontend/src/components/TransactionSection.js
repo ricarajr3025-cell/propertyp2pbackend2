@@ -9,12 +9,9 @@ export default function TransactionSection({ token, backendUrl }) {
   // Decodificar el ID del usuario desde el token JWT
   const userId = JSON.parse(atob(token.split('.')[1])).id;
 
-  // Cargar TODAS las transacciones (ventas y alquileres) en un solo request si tu backend lo permite,
-  // pero en este caso usaremos dos peticiones separadas como tu backend actual.
   useEffect(() => {
     async function fetchTransactions() {
       try {
-        // Cargar ventas (type: 'venta') y alquileres (type: 'alquiler')
         const [ventasRes, alquileresRes] = await Promise.all([
           axios.get(`${backendUrl}/api/transactions`, {
             headers: { Authorization: `Bearer ${token}` }
@@ -23,8 +20,6 @@ export default function TransactionSection({ token, backendUrl }) {
             headers: { Authorization: `Bearer ${token}` }
           })
         ]);
-        // El backend debe devolver transacciones con el campo "type"
-        // Si no, filtra por endpoint
         const ventas = ventasRes.data.filter(tx => tx.type === 'venta');
         const alquileres = alquileresRes.data.filter(tx => tx.type === 'alquiler');
         setAllTransactions({ ventas, alquileres });
@@ -43,7 +38,7 @@ export default function TransactionSection({ token, backendUrl }) {
         headers: { Authorization: `Bearer ${token}` }
       });
       alert('Pago simulado realizado. Ahora puedes liberar fondos.');
-      setSelectedTx(null); // refresca
+      setSelectedTx(null);
     } catch (err) {
       alert('Error al simular pago');
     }
@@ -55,7 +50,7 @@ export default function TransactionSection({ token, backendUrl }) {
       headers: { Authorization: `Bearer ${token}` }
     });
     alert('Fondos liberados');
-    setSelectedTx(null); // refresca
+    setSelectedTx(null);
   };
 
   // Apelar transacción (ventas)
@@ -65,7 +60,7 @@ export default function TransactionSection({ token, backendUrl }) {
       headers: { Authorization: `Bearer ${token}` }
     });
     alert('Apelación enviada');
-    setSelectedTx(null); // refresca
+    setSelectedTx(null);
   };
 
   // Apelar transacción (alquiler)
@@ -75,10 +70,24 @@ export default function TransactionSection({ token, backendUrl }) {
       headers: { Authorization: `Bearer ${token}` }
     });
     alert('Apelación enviada');
-    setSelectedTx(null); // refresca
+    setSelectedTx(null);
   };
 
-  // Si por alguna razón la API no trae el campo "type", separa por endpoint
+  // Cancelar transacción de alquiler
+  const cancelRentTransaction = async (tx) => {
+    if (window.confirm('¿Seguro que deseas cancelar esta transacción?')) {
+      try {
+        await axios.post(`${backendUrl}/api/rental-transactions/${tx._id}/cancel`, {}, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        alert('Transacción cancelada');
+        setSelectedTx(null);
+      } catch (err) {
+        alert('Error al cancelar la transacción');
+      }
+    }
+  };
+
   const ventas = allTransactions.ventas || [];
   const alquileres = allTransactions.alquileres || [];
 
@@ -92,15 +101,12 @@ export default function TransactionSection({ token, backendUrl }) {
               {tx.property?.title || "Propiedad eliminada"} - Estado: {tx.status}
             </span>
             <button onClick={() => setSelectedTx(tx)}>Ver Chat</button>
-            {/* Botón de pago SOLO si es comprador y la transacción está pendiente */}
             {tx.buyer?._id === userId && tx.status === 'pending' && !tx.paid &&
               <button onClick={() => payTransaction(tx)}>Realizar Pago</button>
             }
-            {/* Liberar fondos SOLO si es comprador, transacción pagada y escrow activo */}
             {tx.buyer?._id === userId && tx.status === 'paid' && tx.escrow &&
               <button onClick={() => releaseFunds(tx)}>Liberar Fondos</button>
             }
-            {/* Apelar si la transacción está pendiente */}
             {tx.status === 'pending' &&
               <button onClick={() => appeal(tx)}>Apelar</button>
             }
@@ -115,15 +121,19 @@ export default function TransactionSection({ token, backendUrl }) {
               {tx.property?.title || "Propiedad eliminada"} - Estado: {tx.status}
             </span>
             <button onClick={() => setSelectedTx(tx)}>Ver Chat</button>
-            {/* Apelar si la transacción está pendiente */}
             {tx.status === 'pending' &&
               <button onClick={() => appealRent(tx)}>Apelar</button>
             }
-            {/* El pago de renta y liberación de fondos se maneja en el ChatBox */}
+            {tx.status === 'pending' && tx.buyer?._id === userId &&
+              <button 
+                style={{ background: '#c00', color: '#fff', marginLeft: '8px' }}
+                onClick={() => cancelRentTransaction(tx)}>
+                Cancelar
+              </button>
+            }
           </li>
         ))}
       </ul>
-      {/* Mostrar chat de la transacción seleccionada */}
       {selectedTx && (
         <ChatBox
           transaction={selectedTx}
