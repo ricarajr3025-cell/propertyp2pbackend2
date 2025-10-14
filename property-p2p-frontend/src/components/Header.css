@@ -1,97 +1,272 @@
 .main-header {
-  background: #18191a;
-  padding: 0;
-  position: relative;
-  z-index: 10;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2a2a2a 100%);
+  padding: 15px 20px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
 }
+
 .header-top {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  justify-content: flex-end;
-  height: 80px;
-  padding: 0 1.5em;
 }
 
 .menu-btn {
   background: none;
   border: none;
-  color: #f7f7f8;
-  font-size: 1.6em; /* REDUCIDO: antes 2.6em */
+  color: #fff;
+  font-size: 28px;
   cursor: pointer;
-  z-index: 10001;
-  display: block;
-  position: relative;
+  padding: 8px;
+  transition: all 0.3s ease;
+  border-radius: 8px;
+}
+
+.menu-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(1.1);
 }
 
 .menu-icon {
-  font-size: 1.6em; /* REDUCIDO: antes 2.6em */
-  transition: transform 0.35s cubic-bezier(.4,2,.4,1), color 0.2s;
   display: inline-block;
+  transition: transform 0.3s ease;
 }
 
 .menu-icon.rotated {
   transform: rotate(90deg);
-  color: #38a3f1;
 }
 
-.close-btn {
-  align-self: flex-end;
-  background: none;
+/* ========================================
+   ✅ NUEVO: BOTÓN DE MENSAJES EN HEADER
+   ======================================== */
+.messages-icon-btn {
+  position: relative;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   border: none;
+  color: #fff;
+  font-size: 24px;
   cursor: pointer;
-  margin-bottom: 2em;
-  color: #f7f7f8;
-  font-size: 1.6em; /* REDUCIDO: antes 2.6em */
-  position: absolute;
-  top: 18px;
-  right: 22px;
+  padding: 10px 15px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
 }
 
+.messages-icon-btn:hover {
+  transform: scale(1.1);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+}
+
+.messages-icon-btn:active {
+  transform: scale(0.95);
+}
+
+.message-icon {
+  font-size: 20px;
+}
+
+/* Badge de notificaciones (opcional) */
+.message-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: #ff4444;
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 3px 6px;
+  border-radius: 10px;
+  min-width: 18px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(255, 68, 68, 0.5);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* ========================================
+   MENÚ LATERAL
+   ======================================== */
 .side-menu {
   position: fixed;
   top: 0;
   left: 0;
-  width: 100vw;
+  width: 280px;
   height: 100vh;
-  background: #18191a;
-  box-shadow: none;
-  padding: 4em 2em 2em 2em;
-  display: flex;
-  flex-direction: column;
+  background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+  box-shadow: 2px 0 20px rgba(0, 0, 0, 0.5);
   z-index: 2000;
-  animation: slideInFull .35s;
+  animation: slideIn 0.3s ease;
+  overflow-y: auto;
 }
 
-@keyframes slideInFull {
-  from { opacity: 0; transform: scale(.97); }
-  to { opacity: 1; transform: scale(1); }
+@keyframes slideIn {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.close-btn {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.close-btn:hover {
+  background: rgba(255, 0, 0, 0.3);
 }
 
 .side-menu nav {
+  margin-top: 70px;
   display: flex;
   flex-direction: column;
-  gap: 2.2em;
-  margin-top: 2em;
-  align-items: center;
+  padding: 0 20px;
 }
 
-.side-menu a,
-.logout-btn {
-  font-size: 2.2em;
-  color: #f7f7f8;
+.side-menu nav a,
+.side-menu nav button {
+  color: #fff;
   text-decoration: none;
-  font-family: 'Montserrat', sans-serif;
-  transition: color .2s, background .2s;
-  background: #191a1c;
-  border: none;
-  border-radius: 12px;
+  padding: 15px 20px;
+  margin: 5px 0;
+  border-radius: 10px;
+  transition: all 0.3s ease;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: left;
+  font-size: 16px;
   cursor: pointer;
-  padding: .5em 2em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.side-menu a:hover,
+.side-menu nav a:hover,
+.side-menu nav button:hover {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  transform: translateX(5px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+}
+
+/* ========================================
+   ✅ NUEVO: ESTILOS PARA ENLACE DE MENSAJES EN MENÚ
+   ======================================== */
+.messages-menu-link {
+  position: relative;
+  font-weight: 600;
+}
+
+.menu-badge {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: #ff4444;
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 3px 8px;
+  border-radius: 12px;
+  min-width: 20px;
+  text-align: center;
+}
+
+.logout-btn {
+  background: rgba(255, 68, 68, 0.2) !important;
+  border: 1px solid rgba(255, 68, 68, 0.3) !important;
+  margin-top: 20px;
+}
+
 .logout-btn:hover {
-  background: #232323;
-  color: #38a3f1;
-  text-decoration: underline;
+  background: rgba(255, 68, 68, 0.4) !important;
+  transform: translateX(5px);
+}
+
+/* ========================================
+   OVERLAY PARA CERRAR MENÚ AL HACER CLIC FUERA
+   ======================================== */
+.side-menu::before {
+  content: '';
+  position: fixed;
+  top: 0;
+  left: 280px;
+  width: calc(100vw - 280px);
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: -1;
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+@media (max-width: 768px) {
+  .side-menu {
+    width: 100%;
+  }
+
+  .side-menu::before {
+    display: none;
+  }
+
+  .messages-icon-btn {
+    padding: 8px 12px;
+    font-size: 20px;
+  }
+
+  .message-icon {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-header {
+    padding: 12px 15px;
+  }
+
+  .menu-btn {
+    font-size: 24px;
+  }
+
+  .side-menu nav a,
+  .side-menu nav button {
+    padding: 12px 15px;
+    font-size: 15px;
+  }
+}
+
+/* ========================================
+   SCROLLBAR PERSONALIZADO PARA EL MENÚ
+   ======================================== */
+.side-menu::-webkit-scrollbar {
+  width: 8px;
+}
+
+.side-menu::-webkit-scrollbar-track {
+  background: #0a0a0a;
+}
+
+.side-menu::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
+
+.side-menu::-webkit-scrollbar-thumb:hover {
+  background: #444;
 }

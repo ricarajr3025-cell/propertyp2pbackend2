@@ -8,7 +8,7 @@ const portfinder = require('portfinder');
 const path = require('path');
 const Transaction = require('./models/Transaction');
 const RentalChat = require('./models/RentalChat');
-const VehicleChat = require('./models/VehicleChat'); // Modelo de chat de vehículos
+const VehicleChat = require('./models/VehicleChat');
 
 // Servir archivos subidos de la carpeta uploads
 app.use('/uploads', express.static(path.join(__dirname, '..', 'uploads')));
@@ -22,7 +22,7 @@ const io = new Server(server, { cors: { origin: '*' } });
 
 // --- SOCKET.IO EVENTS ---
 io.on('connection', (socket) => {
-  console.log('Usuario conectado:', socket.id);
+  console.log('🔌 Usuario conectado:', socket.id);
 
   // Transacciones de venta/alquiler (ya existentes)
   socket.on('join-transaction', async ({ transactionId, userId }) => {
@@ -70,7 +70,6 @@ io.on('connection', (socket) => {
       chat.messages.push(chatMsg);
       await chat.save();
     } else {
-      // Si el chat no existe aún, créalo solo con los mensajes.
       await RentalChat.create({
         chatId,
         messages: [chatMsg]
@@ -79,12 +78,70 @@ io.on('connection', (socket) => {
     io.to(chatId).emit("rental-chat:message", chatMsg);
   });
 
-  // --- Chat en tiempo real para vehículos ---
-  socket.on('join-vehicle-chat', async ({ chatId }) => {
+  // ============================================
+  // 🚗 CHAT DE VEHÍCULOS EN TIEMPO REAL
+  // ============================================
+  
+  // Unirse a sala de chat de vehículo
+  socket.on('join_vehicle_chat', (chatId) => {
     socket.join(chatId);
-    console.log(`Usuario ${socket.id} se unió al chat de vehículo ${chatId}`);
+    console.log(`👤 Usuario ${socket.id} se unió al chat de vehículo: ${chatId}`);
   });
 
+  // Enviar mensaje en chat de vehículo
+  socket.on('send_vehicle_message', async (data) => {
+    try {
+      const { chatId, message, senderId, receiverId } = data;
+      
+      if (!chatId || !message || !senderId) {
+        console.error('❌ Datos incompletos:', data);
+        return;
+      }
+
+      const chatMsg = {
+        sender: senderId,
+        receiver: receiverId,
+        message,
+        timestamp: new Date()
+      };
+
+      // Buscar o crear el chat
+      let chat = await VehicleChat.findOne({ chatId });
+      
+      if (chat) {
+        chat.messages.push(chatMsg);
+        await chat.save();
+      } else {
+        await VehicleChat.create({
+          chatId,
+          messages: [chatMsg]
+        });
+      }
+
+      // Emitir el mensaje a todos en la sala
+      io.to(chatId).emit('receive_vehicle_message', {
+        chatId,
+        message: chatMsg
+      });
+
+      console.log('✅ Mensaje de vehículo enviado:', { chatId, senderId, message });
+    } catch (err) {
+      console.error('❌ Error al enviar mensaje de vehículo:', err);
+      socket.emit('error', { message: 'Error al enviar mensaje' });
+    }
+  });
+
+  // Usuario está escribiendo
+  socket.on('user_typing', (data) => {
+    const { chatId, userId, isTyping } = data;
+    socket.to(chatId).emit('user_typing', {
+      chatId,
+      userId,
+      isTyping
+    });
+  });
+
+  // Compatibilidad con evento anterior (vehicle-chat:message)
   socket.on('vehicle-chat:message', async ({ chatId, sender, receiver, message }) => {
     const chatMsg = {
       sender,
@@ -107,7 +164,7 @@ io.on('connection', (socket) => {
   });
 
   socket.on('disconnect', () => {
-    console.log('Usuario desconectado:', socket.id);
+    console.log('🔌 Usuario desconectado:', socket.id);
   });
 });
 
@@ -131,8 +188,8 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/property-
     // Ruta para chat previo de alquiler
     app.use('/api/rental-chat', require('./routes/rentalChat'));
 
-    // Ruta para chat de vehículos
-    app.use('/api/vehicle-chat', require('./routes/vehicleChat'));
+    // Ruta para chat de vehículos (ACTUALIZADA - ahora con io)
+    app.use('/api/vehicle-chat', require('./routes/vehicleChat')(io));
 
     // exponer puerto actual
     app.get('/api/port', (req, res) => res.json({ port: PORT }));
