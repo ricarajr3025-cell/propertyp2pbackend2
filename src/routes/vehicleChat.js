@@ -3,27 +3,67 @@ const router = express.Router();
 const auth = require('../middleware/auth');
 const VehicleChat = require('../models/VehicleChat');
 const Vehicle = require('../models/Vehicle');
+const multer = require('multer');
+const path = require('path');
+
+// ✅ CONFIGURACIÓN DE MULTER PARA ARCHIVOS
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, path.resolve(__dirname, '../../uploads/chat'));
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, 'chat-' + uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const fileFilter = (req, file, cb) => {
+  // Permitir imágenes y documentos
+  const allowedTypes = [
+    'image/jpeg',
+    'image/jpg', 
+    'image/png',
+    'image/gif',
+    'image/webp',
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+  ];
+
+  if (allowedTypes.includes(file.mimetype)) {
+    cb(null, true);
+  } else {
+    cb(new Error('Tipo de archivo no permitido. Solo imágenes y documentos.'), false);
+  }
+};
+
+const upload = multer({ 
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: { fileSize: 10 * 1024 * 1024 } // Límite de 10MB
+});
 
 module.exports = function(io) {
-  // Crear o recuperar un chat existente
+  
+  // Crear o recuperar chat existente
   router.post('/start/:vehicleId', auth, async (req, res) => {
     try {
       const vehicle = await Vehicle.findById(req.params.vehicleId).populate('owner');
+      
       if (!vehicle) {
         return res.status(404).json({ error: 'Vehículo no encontrado' });
       }
 
-      // Evitar que el dueño se contacte a sí mismo
       if (vehicle.owner._id.toString() === req.user.id.toString()) {
         return res.status(400).json({ error: 'No puedes contactarte a ti mismo' });
       }
 
-      // Crear chatId único: vehicleId_userId_ownerId
       const chatId = `${vehicle._id}_${req.user.id}_${vehicle.owner._id}`;
       let chat = await VehicleChat.findOne({ chatId });
 
       if (!chat) {
-        // Crear nuevo chat
         chat = new VehicleChat({
           chatId,
           vehicle: vehicle._id,
@@ -32,9 +72,9 @@ module.exports = function(io) {
           messages: []
         });
         await chat.save();
+        console.log('✅ Nuevo chat creado:', chatId);
       }
 
-      // Poblar datos completos
       chat = await VehicleChat.findOne({ chatId })
         .populate('vehicle')
         .populate('user', 'name email avatar')
@@ -42,7 +82,7 @@ module.exports = function(io) {
 
       res.json(chat);
     } catch (err) {
-      console.error('Error al iniciar chat:', err);
+      console.error('❌ Error al iniciar chat:', err);
       res.status(500).json({ error: err.message });
     }
   });
@@ -61,7 +101,6 @@ module.exports = function(io) {
         return res.status(404).json({ error: 'Chat no encontrado' });
       }
 
-      // Verificar que el usuario autenticado sea parte del chat
       const isParticipant = 
         chat.user._id.toString() === req.user.id.toString() ||
         chat.owner._id.toString() === req.user.id.toString();
@@ -72,7 +111,7 @@ module.exports = function(io) {
 
       res.json(chat);
     } catch (err) {
-      console.error('Error al obtener chat:', err);
+      console.error('❌ Error al obtener chat:', err);
       res.status(500).json({ error: err.message });
     }
   });
@@ -86,22 +125,25 @@ module.exports = function(io) {
         .populate('vehicle')
         .populate('user', 'name email avatar')
         .populate('owner', 'name email avatar')
-        .sort({ 'messages.timestamp': -1 });
+        .sort({ updatedAt: -1 });
 
+      console.log(`✅ ${chats.length} chats encontrados para usuario ${req.user.id}`);
       res.json(chats);
     } catch (err) {
-      console.error('Error al obtener chats:', err);
+      console.error('❌ Error al obtener chats:', err);
       res.status(500).json({ error: err.message });
     }
   });
 
-  // Enviar mensaje (HTTP)
-  router.post('/:chatId/message', auth, async (req, res) => {
+  // ✅ NUEVO: Enviar mensaje con archivo adjunto
+  router.post('/:chatId/message', auth, upload.single('file'), async (req, res) => {
     try {
       const { message } = req.body;
-      
-      if (!message || !message.trim()) {
-        return res.status(400).json({ error: 'El mensaje no puede estar vacío' });
+      const file = req.file;
+
+      // Validar que haya al menos un mensaje o un archivo
+      if (!message?.trim() && !file) {
+        return res.status(400).json({ error: 'Debes enviar un mensaje o un archivo' });
       }
 
       const chat = await VehicleChat.findOne({ chatId: req.params.chatId });
@@ -110,7 +152,6 @@ module.exports = function(io) {
         return res.status(404).json({ error: 'Chat no encontrado' });
       }
 
-      // Verificar que el usuario sea parte del chat
       const isParticipant = 
         chat.user.toString() === req.user.id.toString() ||
         chat.owner.toString() === req.user.id.toString();
@@ -119,7 +160,6 @@ module.exports = function(io) {
         return res.status(403).json({ error: 'No tienes acceso a este chat' });
       }
 
-      // Determinar el receptor
       const receiver = chat.user.toString() === req.user.id.toString() 
         ? chat.owner 
         : chat.user;
@@ -127,11 +167,24 @@ module.exports = function(io) {
       const newMessage = {
         sender: req.user.id,
         receiver: receiver,
-        message: message.trim(),
+        message: message?.trim() || '',
         timestamp: new Date()
       };
 
+      // ✅ Agregar información del archivo si existe
+      if (file) {
+        newMessage.file = {
+          filename: file.filename,
+          originalname: file.originalname,
+          mimetype: file.mimetype,
+          size: file.size,
+          path: file.path,
+          url: `uploads/chat/${file.filename}`
+        };
+      }
+
       chat.messages.push(newMessage);
+      chat.updatedAt = new Date();
       await chat.save();
 
       // Emitir mensaje por Socket.io
@@ -140,9 +193,15 @@ module.exports = function(io) {
         message: newMessage
       });
 
+      console.log('✅ Mensaje enviado:', { 
+        chatId: req.params.chatId, 
+        sender: req.user.id,
+        hasFile: !!file
+      });
+      
       res.json(newMessage);
     } catch (err) {
-      console.error('Error al enviar mensaje:', err);
+      console.error('❌ Error al enviar mensaje:', err);
       res.status(500).json({ error: err.message });
     }
   });

@@ -8,14 +8,16 @@ const VehicleChat = ({ chatId, vehicle, currentUser, onClose }) => {
   const [socket, setSocket] = useState(null);
   const [isTyping, setIsTyping] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [filePreview, setFilePreview] = useState(null);
+  const [uploading, setUploading] = useState(false);
   const messagesEndRef = useRef(null);
   const typingTimeoutRef = useRef(null);
+  const fileInputRef = useRef(null);
 
-  // Obtener URL del backend desde variable de entorno o usar localhost
   const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || 'http://localhost:3005';
 
   useEffect(() => {
-    // Conectar Socket.io
     const newSocket = io(BACKEND_URL, {
       transports: ['websocket', 'polling'],
       reconnection: true,
@@ -26,7 +28,6 @@ const VehicleChat = ({ chatId, vehicle, currentUser, onClose }) => {
     newSocket.on('connect', () => {
       console.log('✅ Conectado a Socket.io');
       setIsConnected(true);
-      // Unirse al chat
       newSocket.emit('join_vehicle_chat', chatId);
     });
 
@@ -40,7 +41,6 @@ const VehicleChat = ({ chatId, vehicle, currentUser, onClose }) => {
       setIsConnected(false);
     });
 
-    // Escuchar nuevos mensajes
     newSocket.on('receive_vehicle_message', (data) => {
       console.log('📩 Mensaje recibido:', data);
       if (data.chatId === chatId) {
@@ -48,7 +48,6 @@ const VehicleChat = ({ chatId, vehicle, currentUser, onClose }) => {
       }
     });
 
-    // Escuchar cuando el otro usuario está escribiendo
     newSocket.on('user_typing', (data) => {
       if (data.chatId === chatId && data.userId !== currentUser._id) {
         setIsTyping(data.isTyping);
@@ -56,8 +55,6 @@ const VehicleChat = ({ chatId, vehicle, currentUser, onClose }) => {
     });
 
     setSocket(newSocket);
-
-    // Cargar historial de mensajes
     loadMessages();
 
     return () => {
@@ -73,16 +70,12 @@ const VehicleChat = ({ chatId, vehicle, currentUser, onClose }) => {
     try {
       const token = localStorage.getItem('token');
       const response = await fetch(`${BACKEND_URL}/api/vehicle-chat/${chatId}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
+        headers: { 'Authorization': `Bearer ${token}` }
       });
 
       if (response.ok) {
         const data = await response.json();
         setMessages(data.messages || []);
-      } else {
-        console.error('Error al cargar mensajes');
       }
     } catch (err) {
       console.error('Error al cargar mensajes:', err);
@@ -93,26 +86,73 @@ const VehicleChat = ({ chatId, vehicle, currentUser, onClose }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // ✅ Manejar selección de archivo
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      // Validar tamaño (10MB máximo)
+      if (file.size > 10 * 1024 * 1024) {
+        alert('El archivo es demasiado grande. Máximo 10MB');
+        return;
+      }
+
+      setSelectedFile(file);
+
+      // Crear preview si es imagen
+      if (file.type.startsWith('image/')) {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          setFilePreview(reader.result);
+        };
+        reader.readAsDataURL(file);
+      } else {
+        setFilePreview(null);
+      }
+    }
+  };
+
+  // ✅ Cancelar archivo seleccionado
+  const handleCancelFile = () => {
+    setSelectedFile(null);
+    setFilePreview(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   const handleSendMessage = async (e) => {
     e.preventDefault();
-    if (!newMessage.trim() || !socket || !isConnected) return;
+    
+    if (!newMessage.trim() && !selectedFile) return;
+    if (!socket || !isConnected) {
+      alert('No estás conectado. Espera un momento...');
+      return;
+    }
 
     try {
+      setUploading(true);
       const token = localStorage.getItem('token');
+      
+      // Crear FormData para enviar archivo y mensaje
+      const formData = new FormData();
+      if (newMessage.trim()) {
+        formData.append('message', newMessage.trim());
+      }
+      if (selectedFile) {
+        formData.append('file', selectedFile);
+      }
 
-      // Enviar por HTTP
       const response = await fetch(`${BACKEND_URL}/api/vehicle-chat/${chatId}/message`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`
         },
-        body: JSON.stringify({ message: newMessage.trim() })
+        body: formData
       });
 
       if (response.ok) {
         setNewMessage('');
-        // El mensaje se actualizará vía Socket.io
+        handleCancelFile();
       } else {
         const error = await response.json();
         alert(error.error || 'Error al enviar mensaje');
@@ -120,6 +160,8 @@ const VehicleChat = ({ chatId, vehicle, currentUser, onClose }) => {
     } catch (err) {
       console.error('Error al enviar mensaje:', err);
       alert('Error al enviar mensaje');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -131,12 +173,10 @@ const VehicleChat = ({ chatId, vehicle, currentUser, onClose }) => {
         isTyping: true
       });
 
-      // Cancelar timeout anterior
       if (typingTimeoutRef.current) {
         clearTimeout(typingTimeoutRef.current);
       }
 
-      // Dejar de escribir después de 1 segundo
       typingTimeoutRef.current = setTimeout(() => {
         socket.emit('user_typing', {
           chatId,
@@ -172,7 +212,22 @@ const VehicleChat = ({ chatId, vehicle, currentUser, onClose }) => {
     return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
   };
 
-  // Determinar el otro usuario (vendedor)
+  const formatFileSize = (bytes) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+  };
+
+  const getFileIcon = (mimetype) => {
+    if (mimetype.startsWith('image/')) return '🖼️';
+    if (mimetype === 'application/pdf') return '📄';
+    if (mimetype.includes('word')) return '📝';
+    if (mimetype.includes('excel') || mimetype.includes('spreadsheet')) return '📊';
+    return '📎';
+  };
+
   const otherUser = vehicle?.owner?._id === currentUser._id 
     ? vehicle?.user 
     : vehicle?.owner;
@@ -180,9 +235,7 @@ const VehicleChat = ({ chatId, vehicle, currentUser, onClose }) => {
   return (
     <div className="vehicle-chat-container">
       <div className="chat-header">
-        <button className="back-button" onClick={onClose}>
-          ←
-        </button>
+        <button className="back-button" onClick={onClose}>←</button>
         <div className="chat-header-info">
           <div className="chat-avatar">
             {otherUser?.avatar ? (
@@ -229,10 +282,33 @@ const VehicleChat = ({ chatId, vehicle, currentUser, onClose }) => {
                 )}
                 <div className={`message ${isSent ? 'sent' : 'received'}`}>
                   <div className="message-bubble">
-                    <p>{msg.message}</p>
-                    <span className="message-time">
-                      {formatTime(msg.timestamp)}
-                    </span>
+                    {msg.file && (
+                      <div className="message-file">
+                        {msg.file.mimetype.startsWith('image/') ? (
+                          <img 
+                            src={`${BACKEND_URL}/${msg.file.url}`}
+                            alt={msg.file.originalname}
+                            className="message-image"
+                            onClick={() => window.open(`${BACKEND_URL}/${msg.file.url}`, '_blank')}
+                          />
+                        ) : (
+                          <a 
+                            href={`${BACKEND_URL}/${msg.file.url}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="message-document"
+                          >
+                            <span className="file-icon">{getFileIcon(msg.file.mimetype)}</span>
+                            <div className="file-info">
+                              <span className="file-name">{msg.file.originalname}</span>
+                              <span className="file-size">{formatFileSize(msg.file.size)}</span>
+                            </div>
+                          </a>
+                        )}
+                      </div>
+                    )}
+                    {msg.message && <p>{msg.message}</p>}
+                    <span className="message-time">{formatTime(msg.timestamp)}</span>
                   </div>
                 </div>
               </React.Fragment>
@@ -250,7 +326,43 @@ const VehicleChat = ({ chatId, vehicle, currentUser, onClose }) => {
         <div ref={messagesEndRef} />
       </div>
 
+      {/* ✅ Preview del archivo seleccionado */}
+      {selectedFile && (
+        <div className="file-preview-container">
+          <div className="file-preview">
+            {filePreview ? (
+              <img src={filePreview} alt="Preview" className="preview-image" />
+            ) : (
+              <div className="preview-document">
+                <span className="file-icon-large">{getFileIcon(selectedFile.type)}</span>
+                <span className="preview-filename">{selectedFile.name}</span>
+                <span className="preview-filesize">{formatFileSize(selectedFile.size)}</span>
+              </div>
+            )}
+            <button className="cancel-file-btn" onClick={handleCancelFile}>✕</button>
+          </div>
+        </div>
+      )}
+
       <form className="chat-input-form" onSubmit={handleSendMessage}>
+        {/* ✅ Botón de adjuntar archivo */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileSelect}
+          accept="image/*,.pdf,.doc,.docx,.xls,.xlsx"
+          style={{ display: 'none' }}
+        />
+        <button
+          type="button"
+          className="attach-btn"
+          onClick={() => fileInputRef.current?.click()}
+          disabled={uploading || !isConnected}
+          aria-label="Adjuntar archivo"
+        >
+          📎
+        </button>
+
         <input
           type="text"
           value={newMessage}
@@ -260,14 +372,15 @@ const VehicleChat = ({ chatId, vehicle, currentUser, onClose }) => {
           }}
           placeholder="Escribe un mensaje..."
           className="chat-input"
-          disabled={!isConnected}
+          disabled={uploading || !isConnected}
         />
+        
         <button 
           type="submit" 
           className="send-button"
-          disabled={!newMessage.trim() || !isConnected}
+          disabled={(!newMessage.trim() && !selectedFile) || !isConnected || uploading}
         >
-          Enviar
+          {uploading ? '⏳' : 'Enviar'}
         </button>
       </form>
     </div>

@@ -417,3 +417,184 @@
     padding-bottom: max(30px, calc(30px + env(safe-area-inset-bottom)));
   }
 }
+
+/* ========================================
+   ✅ BOTÓN DE ADJUNTAR ARCHIVO
+   ======================================== */
+.attach-btn {
+  background: none;
+  border: none;
+  color: #667eea;
+  font-size: 24px;
+  cursor: pointer;
+  padding: 8px 12px;
+  transition: all 0.3s;
+  flex-shrink: 0;
+  border-radius: 50%;
+}
+
+.attach-btn:hover:not(:disabled) {
+  background: rgba(102, 126, 234, 0.1);
+  transform: scale(1.1);
+}
+
+.attach-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ========================================
+   ✅ PREVIEW DE ARCHIVO SELECCIONADO
+   ======================================== */
+.file-preview-container {
+  background: #1a1a1a;
+  border-top: 1px solid #333;
+  padding: 10px 15px;
+  flex-shrink: 0;
+}
+
+.file-preview {
+  position: relative;
+  background: #2a2a2a;
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-image {
+  max-width: 100%;
+  max-height: 150px;
+  border-radius: 8px;
+}
+
+.preview-document {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  gap: 8px;
+}
+
+.file-icon-large {
+  font-size: 48px;
+}
+
+.preview-filename {
+  color: #fff;
+  font-size: 14px;
+  text-align: center;
+  word-break: break-word;
+}
+
+.preview-filesize {
+  color: #888;
+  font-size: 12px;
+}
+
+.cancel-file-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: rgba(255, 68, 68, 0.9);
+  border: none;
+  color: #fff;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s;
+}
+
+.cancel-file-btn:hover {
+  background: #ff4444;
+  transform: scale(1.1);
+}
+
+/* ========================================
+   ✅ ARCHIVOS EN MENSAJES
+   ======================================== */
+.message-file {
+  margin-bottom: 8px;
+}
+
+.message-image {
+  max-width: 100%;
+  max-height: 300px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform 0.3s;
+}
+
+.message-image:hover {
+  transform: scale(1.02);
+}
+
+.message-document {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: rgba(255, 255, 255, 0.1);
+  padding: 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: #fff;
+  transition: all 0.3s;
+}
+
+.message-document:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateX(3px);
+}
+
+.file-icon {
+  font-size: 32px;
+}
+
+.file-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.file-name {
+  font-size: 14px;
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.file-size {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ========================================
+   RESPONSIVE - ARCHIVOS
+   ======================================== */
+@media (max-width: 768px) {
+  .message-image {
+    max-height: 200px;
+  }
+
+  .attach-btn {
+    font-size: 20px;
+    padding: 6px 10px;
+  }
+
+  .file-icon {
+    font-size: 28px;
+  }
+
+  .file-name {
+    font-size: 13px;
+  }
+}
