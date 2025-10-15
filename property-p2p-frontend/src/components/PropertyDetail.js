@@ -218,6 +218,9 @@ export default function PropertyDetail({ backendUrl, token, userId }) {
     );
   }
 
+  // Verificar si el propietario está verificado
+  const isOwnerVerified = property.owner?.badges?.some(b => b.type === 'verified');
+
   return (
     <>
       {process.env.NODE_ENV === 'development' && (
@@ -298,15 +301,50 @@ export default function PropertyDetail({ backendUrl, token, userId }) {
               SECCIÓN DE CONTACTO Y TRANSACCIÓN
               ============================================ */}
           <div className="vehicle-detail-chat">
-            <div className="chat-section-title">Contactar al vendedor</div>
+            <div className="chat-section-title">
+              Contactar al vendedor
+              {/* ✅ BADGE DE VERIFICADO */}
+              {isOwnerVerified && (
+                <span className="verified-badge" title="Usuario Verificado">
+                  ✅ Verificado
+                </span>
+              )}
+            </div>
 
             {property.owner && property.owner._id !== userId ? (
               <>
+                {/* Información del propietario */}
+                <div className="owner-info">
+                  <div className="owner-avatar">
+                    {property.owner.avatar ? (
+                      <img 
+                        src={`${backendUrl}/${property.owner.avatar}`} 
+                        alt={property.owner.name} 
+                      />
+                    ) : (
+                      <span className="avatar-placeholder">
+                        {property.owner.name?.[0]?.toUpperCase() || 'U'}
+                      </span>
+                    )}
+                  </div>
+                  <div className="owner-details">
+                    <div className="owner-name">
+                      {property.owner.name || property.owner.email}
+                      {isOwnerVerified && (
+                        <span className="verified-badge-inline">✅</span>
+                      )}
+                    </div>
+                    {property.owner.phone && (
+                      <div className="owner-phone">📞 {property.owner.phone}</div>
+                    )}
+                  </div>
+                </div>
+
                 <button
                   className="open-chat-button"
                   onClick={handleOpenChat}
                 >
-                  💬 Abrir Chat con {property.owner.name || property.owner.email}
+                  💬 Abrir Chat
                 </button>
 
                 {/* ✅ BOTÓN DE HACER OFERTA CON MODAL */}

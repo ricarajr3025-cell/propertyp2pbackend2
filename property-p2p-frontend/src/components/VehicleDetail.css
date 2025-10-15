@@ -448,3 +448,115 @@
     padding: 8px 16px;
   }
 }
+
+/* ============================================
+   BADGE DE VERIFICADO
+   ============================================ */
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: #fff;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+  margin-left: 10px;
+  animation: pulse 2s infinite;
+}
+
+.verified-badge-inline {
+  margin-left: 5px;
+  font-size: 14px;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+/* ============================================
+   INFORMACIÓN DEL PROPIETARIO
+   ============================================ */
+.owner-info {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 12px;
+  margin-bottom: 15px;
+  border: 2px solid #e0e0e0;
+}
+
+.owner-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #667eea;
+  flex-shrink: 0;
+}
+
+.owner-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: #fff;
+  font-size: 24px;
+  font-weight: bold;
+}
+
+.owner-details {
+  flex: 1;
+}
+
+.owner-name {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+
+.owner-phone {
+  font-size: 14px;
+  color: #666;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .owner-info {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .owner-avatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  .verified-badge {
+    font-size: 10px;
+    padding: 4px 10px;
+  }
+}
