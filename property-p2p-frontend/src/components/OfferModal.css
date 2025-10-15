@@ -1,0 +1,347 @@
+/* ============================================
+   OVERLAY DEL MODAL
+   ============================================ */
+.offer-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+  padding: 20px;
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   MODAL
+   ============================================ */
+.offer-modal {
+  background: #fff;
+  border-radius: 16px;
+  max-width: 500px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(50px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* ============================================
+   HEADER
+   ============================================ */
+.offer-modal-header {
+  position: relative;
+  padding: 20px;
+  border-bottom: 1px solid #eee;
+  text-align: center;
+}
+
+.offer-modal-header h2 {
+  margin: 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.offer-modal-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: #f0f0f0;
+  border: none;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  font-size: 20px;
+  cursor: pointer;
+  transition: all 0.3s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.offer-modal-close:hover {
+  background: #e0e0e0;
+  transform: scale(1.1);
+}
+
+/* ============================================
+   BODY
+   ============================================ */
+.offer-modal-body {
+  padding: 20px;
+}
+
+/* Información de la propiedad */
+.offer-property-info {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  padding: 15px;
+  background: #f8f9fa;
+  border-radius: 12px;
+}
+
+.offer-property-image {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+
+.offer-property-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.offer-property-details h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+  color: #333;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.offer-listing-price {
+  margin: 0 0 5px 0;
+  font-size: 18px;
+  font-weight: 600;
+  color: #4CAF50;
+}
+
+.offer-location {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+}
+
+/* ============================================
+   OPCIONES DE OFERTA
+   ============================================ */
+.offer-options {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.offer-option {
+  display: flex;
+  align-items: center;
+  padding: 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.offer-option:hover {
+  border-color: #667eea;
+  background: #f8f9ff;
+}
+
+.offer-option input[type="radio"] {
+  width: 24px;
+  height: 24px;
+  margin-right: 15px;
+  cursor: pointer;
+  accent-color: #667eea;
+}
+
+.offer-option input[type="radio"]:checked ~ .offer-option-content {
+  color: #667eea;
+}
+
+.offer-option-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.offer-option-amount {
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+}
+
+.offer-option-label {
+  font-size: 13px;
+  color: #666;
+}
+
+.offer-option-label-link {
+  font-size: 15px;
+  color: #667eea;
+  font-weight: 500;
+}
+
+/* Opción recomendada */
+.offer-option-recommended {
+  border-color: #667eea;
+  background: linear-gradient(135deg, #f8f9ff 0%, #e8eaff 100%);
+}
+
+.offer-option-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  background: #667eea;
+  color: #fff;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  width: fit-content;
+}
+
+/* Opción personalizada */
+.offer-custom-input {
+  width: 100%;
+  padding: 12px;
+  border: 2px solid #667eea;
+  border-radius: 8px;
+  font-size: 20px;
+  font-weight: 600;
+  color: #333;
+  outline: none;
+}
+
+/* ============================================
+   MENSAJE INFORMATIVO
+   ============================================ */
+.offer-info-message {
+  padding: 15px;
+  background: #fff3cd;
+  border-left: 4px solid #ffc107;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
+
+.offer-info-message p {
+  margin: 0;
+  font-size: 13px;
+  color: #856404;
+  line-height: 1.5;
+}
+
+/* ============================================
+   RESUMEN DE LA OFERTA
+   ============================================ */
+.offer-summary {
+  padding: 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 12px;
+  text-align: center;
+  color: #fff;
+}
+
+.offer-summary-label {
+  font-size: 14px;
+  opacity: 0.9;
+  margin-bottom: 8px;
+}
+
+.offer-summary-amount {
+  font-size: 36px;
+  font-weight: bold;
+  margin-bottom: 8px;
+}
+
+.offer-summary-diff {
+  font-size: 14px;
+  opacity: 0.9;
+}
+
+.offer-diff-lower {
+  color: #ffeb3b;
+}
+
+.offer-diff-higher {
+  color: #4CAF50;
+}
+
+/* ============================================
+   FOOTER
+   ============================================ */
+.offer-modal-footer {
+  padding: 20px;
+  border-top: 1px solid #eee;
+}
+
+.btn-send-offer {
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  border-radius: 12px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.btn-send-offer:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-send-offer:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ============================================
+   RESPONSIVE
+   ============================================ */
+@media (max-width: 768px) {
+  .offer-modal {
+    max-width: 100%;
+    margin: 0;
+    border-radius: 16px 16px 0 0;
+    max-height: 95vh;
+  }
+
+  .offer-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .offer-property-info {
+    flex-direction: column;
+  }
+
+  .offer-property-image {
+    width: 100%;
+    height: 150px;
+  }
+
+  .offer-summary-amount {
+    font-size: 28px;
+  }
+}

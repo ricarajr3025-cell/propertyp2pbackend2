@@ -361,3 +361,90 @@
     padding: 12px;
   }
 }
+/* ============================================
+   BOTÓN DE INICIAR TRANSACCIÓN
+   ============================================ */
+.start-transaction-button {
+  width: 100%;
+  padding: 15px;
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  border: none;
+  border-radius: 8px;
+  color: #fff;
+  font-size: 18px;
+  font-weight: bold;
+  cursor: pointer;
+  margin-top: 10px;
+  transition: all 0.3s;
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+}
+
+.start-transaction-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+}
+
+.start-transaction-button:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.start-transaction-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  background: #999;
+}
+
+/* ============================================
+   AVISO DE TRANSACCIÓN ACTIVA
+   ============================================ */
+.active-transaction-notice {
+  padding: 15px;
+  background: rgba(76, 175, 80, 0.1);
+  border: 2px solid #4CAF50;
+  border-radius: 8px;
+  color: #4CAF50;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 600;
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.view-transaction-button {
+  padding: 10px 20px;
+  background: #4CAF50;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+}
+
+.view-transaction-button:hover {
+  background: #45a049;
+  transform: scale(1.05);
+}
+
+/* ============================================
+   RESPONSIVE - BOTONES DE TRANSACCIÓN
+   ============================================ */
+@media (max-width: 768px) {
+  .start-transaction-button {
+    font-size: 16px;
+    padding: 12px;
+  }
+
+  .active-transaction-notice {
+    font-size: 13px;
+  }
+
+  .view-transaction-button {
+    font-size: 13px;
+    padding: 8px 16px;
+  }
+}

@@ -1,23 +1,29 @@
 import React, { useState, useEffect } from "react";
-import { useParams, useLocation } from "react-router-dom";
+import { useParams, useLocation, useNavigate } from "react-router-dom";
 import axios from "axios";
 import PropertyChat from "./PropertyChat";
-import "./VehicleDetail.css"; // Reutilizamos los mismos estilos
+import OfferModal from "./OfferModal";
+import "./VehicleDetail.css";
 
 export default function PropertyDetail({ backendUrl, token, userId }) {
   const { id } = useParams();
   const location = useLocation();
+  const navigate = useNavigate();
   const [property, setProperty] = useState(null);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [showChat, setShowChat] = useState(false);
   const [chatData, setChatData] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [creatingTransaction, setCreatingTransaction] = useState(false);
+  const [hasActiveTransaction, setHasActiveTransaction] = useState(false);
+  const [showOfferModal, setShowOfferModal] = useState(false);
 
   const currentUserId = localStorage.getItem('userId');
 
   useEffect(() => {
     loadProperty();
     loadCurrentUser();
+    checkActiveTransaction();
 
     // Si viene desde la lista de mensajes, abrir el chat automáticamente
     if (location.state?.openChat && location.state?.chatId) {
@@ -53,6 +59,28 @@ export default function PropertyDetail({ backendUrl, token, userId }) {
         _id: userId,
         id: userId
       });
+    }
+  };
+
+  const checkActiveTransaction = async () => {
+    if (!userId || !token) return;
+
+    try {
+      const response = await axios.get(`${backendUrl}/api/transactions`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      // Verificar si hay una transacción activa para esta propiedad
+      const activeTransaction = response.data.find(
+        tx => tx.property._id === id &&
+        ['pending_validation', 'pending', 'paid', 'in_escrow'].includes(tx.status)
+      );
+
+      if (activeTransaction) {
+        setHasActiveTransaction(true);
+      }
+    } catch (err) {
+      console.error("Error al verificar transacciones:", err);
     }
   };
 
@@ -113,14 +141,62 @@ export default function PropertyDetail({ backendUrl, token, userId }) {
     }
   };
 
+  const handleStartTransaction = async (offerAmount) => {
+    try {
+      if (!userId) {
+        alert("Debes iniciar sesión para iniciar una transacción");
+        return;
+      }
+
+      if (!property || !property.owner) {
+        alert("Error al cargar información de la propiedad");
+        return;
+      }
+
+      setCreatingTransaction(true);
+
+      const response = await axios.post(
+        `${backendUrl}/api/transactions`,
+        {
+          property_id: property._id,
+          offer_price: offerAmount,
+          currency: "COP",
+          propertyType: "Property"
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` }
+        }
+      );
+
+      if (response.data) {
+        setShowOfferModal(false);
+        alert("¡Transacción iniciada exitosamente! El vendedor será notificado.");
+        setHasActiveTransaction(true);
+
+        setTimeout(() => {
+          navigate('/transactions');
+        }, 1000);
+      }
+    } catch (err) {
+      console.error("Error al iniciar transacción:", err);
+      if (err.response?.data?.error) {
+        alert(err.response.data.error);
+      } else {
+        alert("Error al iniciar transacción. Por favor intenta de nuevo.");
+      }
+    } finally {
+      setCreatingTransaction(false);
+    }
+  };
+
   if (!property) {
     return (
-      <div style={{ 
-        padding: 40, 
-        textAlign: "center", 
-        background: "#000", 
-        color: "#fff", 
-        minHeight: "100vh" 
+      <div style={{
+        padding: 40,
+        textAlign: "center",
+        background: "#000",
+        color: "#fff",
+        minHeight: "100vh"
       }}>
         Cargando propiedad...
       </div>
@@ -160,8 +236,8 @@ export default function PropertyDetail({ backendUrl, token, userId }) {
       )}
 
       <div className="vehicle-detail-main">
-        <button 
-          className="vehicle-detail-close" 
+        <button
+          className="vehicle-detail-close"
           onClick={() => window.history.back()}
         >
           &times;
@@ -218,16 +294,42 @@ export default function PropertyDetail({ backendUrl, token, userId }) {
             <span>🏠 {property.propertyType}</span>
           </div>
 
+          {/* ============================================
+              SECCIÓN DE CONTACTO Y TRANSACCIÓN
+              ============================================ */}
           <div className="vehicle-detail-chat">
             <div className="chat-section-title">Contactar al vendedor</div>
-            
+
             {property.owner && property.owner._id !== userId ? (
-              <button 
-                className="open-chat-button" 
-                onClick={handleOpenChat}
-              >
-                💬 Abrir Chat con {property.owner.name || property.owner.email}
-              </button>
+              <>
+                <button
+                  className="open-chat-button"
+                  onClick={handleOpenChat}
+                >
+                  💬 Abrir Chat con {property.owner.name || property.owner.email}
+                </button>
+
+                {/* ✅ BOTÓN DE HACER OFERTA CON MODAL */}
+                {!hasActiveTransaction ? (
+                  <button
+                    className="start-transaction-button"
+                    onClick={() => setShowOfferModal(true)}
+                    disabled={creatingTransaction}
+                  >
+                    💰 Hacer Oferta
+                  </button>
+                ) : (
+                  <div className="active-transaction-notice">
+                    ✅ Ya tienes una transacción activa para esta propiedad
+                    <button
+                      className="view-transaction-button"
+                      onClick={() => navigate('/transactions')}
+                    >
+                      Ver Transacciones
+                    </button>
+                  </div>
+                )}
+              </>
             ) : property.owner && property.owner._id === userId ? (
               <div className="own-vehicle-notice">
                 Esta es tu propiedad
@@ -239,6 +341,7 @@ export default function PropertyDetail({ backendUrl, token, userId }) {
             )}
           </div>
 
+          {/* WhatsApp */}
           {property.owner?.whatsapp && property.owner._id !== userId && (
             <a
               className="vehicle-detail-whatsapp"
@@ -267,7 +370,7 @@ export default function PropertyDetail({ backendUrl, token, userId }) {
           <button className="vehicle-detail-action">
             <span role="img" aria-label="Alerts">🔔</span> Alertas
           </button>
-          <button 
+          <button
             className="vehicle-detail-action"
             onClick={handleOpenChat}
             disabled={!property.owner || property.owner._id === userId}
@@ -282,6 +385,17 @@ export default function PropertyDetail({ backendUrl, token, userId }) {
           </button>
         </div>
       </div>
+
+      {/* ============================================
+          MODAL DE OFERTA
+          ============================================ */}
+      <OfferModal
+        show={showOfferModal}
+        onClose={() => setShowOfferModal(false)}
+        property={property}
+        onSubmit={handleStartTransaction}
+        backendUrl={backendUrl}
+      />
     </>
   );
 }

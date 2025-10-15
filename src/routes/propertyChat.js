@@ -32,7 +32,7 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: { fileSize: 10 * 1024 * 1024 }
@@ -40,10 +40,13 @@ const upload = multer({
 
 module.exports = function(io) {
   
+  // ============================================
+  // CREAR O RECUPERAR CHAT (desde propiedad)
+  // ============================================
   router.post('/start/:propertyId', auth, async (req, res) => {
     try {
       const property = await Property.findById(req.params.propertyId).populate('owner');
-      
+
       if (!property) {
         return res.status(404).json({ error: 'Propiedad no encontrada' });
       }
@@ -79,6 +82,9 @@ module.exports = function(io) {
     }
   });
 
+  // ============================================
+  // OBTENER CHAT POR CHAT ID
+  // ============================================
   router.get('/:chatId', auth, async (req, res) => {
     try {
       const chat = await PropertyChat.findOne({ chatId: req.params.chatId })
@@ -92,7 +98,7 @@ module.exports = function(io) {
         return res.status(404).json({ error: 'Chat no encontrado' });
       }
 
-      const isParticipant = 
+      const isParticipant =
         chat.user._id.toString() === req.user.id.toString() ||
         chat.owner._id.toString() === req.user.id.toString();
 
@@ -107,6 +113,9 @@ module.exports = function(io) {
     }
   });
 
+  // ============================================
+  // OBTENER TODOS LOS CHATS DEL USUARIO
+  // ============================================
   router.get('/', auth, async (req, res) => {
     try {
       const chats = await PropertyChat.find({
@@ -125,6 +134,9 @@ module.exports = function(io) {
     }
   });
 
+  // ============================================
+  // ENVIAR MENSAJE CON ARCHIVO
+  // ============================================
   router.post('/:chatId/message', auth, upload.single('file'), async (req, res) => {
     try {
       const { message } = req.body;
@@ -140,7 +152,7 @@ module.exports = function(io) {
         return res.status(404).json({ error: 'Chat no encontrado' });
       }
 
-      const isParticipant = 
+      const isParticipant =
         chat.user.toString() === req.user.id.toString() ||
         chat.owner.toString() === req.user.id.toString();
 
@@ -148,8 +160,8 @@ module.exports = function(io) {
         return res.status(403).json({ error: 'No tienes acceso a este chat' });
       }
 
-      const receiver = chat.user.toString() === req.user.id.toString() 
-        ? chat.owner 
+      const receiver = chat.user.toString() === req.user.id.toString()
+        ? chat.owner
         : chat.user;
 
       const newMessage = {
@@ -183,6 +195,59 @@ module.exports = function(io) {
       res.json(newMessage);
     } catch (err) {
       console.error('❌ Error al enviar mensaje:', err);
+      res.status(500).json({ error: err.message });
+    }
+  });
+
+  // ============================================
+  // ✅ NUEVO: OBTENER O CREAR CHAT (desde transacciones)
+  // ============================================
+  router.post('/get-or-create', auth, async (req, res) => {
+    try {
+      const { chatId, propertyId, ownerId } = req.body;
+
+      if (!chatId || !propertyId || !ownerId) {
+        return res.status(400).json({ error: 'Faltan parámetros requeridos: chatId, propertyId, ownerId' });
+      }
+
+      console.log('🔍 Buscando/creando chat:', { chatId, propertyId, ownerId, userId: req.user.id });
+
+      let chat = await PropertyChat.findOne({ chatId });
+
+      if (!chat) {
+        // Crear el chat si no existe
+        const property = await Property.findById(propertyId).populate('owner');
+
+        if (!property) {
+          return res.status(404).json({ error: 'Propiedad no encontrada' });
+        }
+
+        // Determinar quién es user y quién es owner
+        const userId = req.user.id === ownerId ? ownerId : req.user.id;
+        const ownerIdFinal = ownerId;
+
+        chat = new PropertyChat({
+          chatId,
+          property: propertyId,
+          user: userId === ownerIdFinal ? userId : req.user.id,
+          owner: ownerIdFinal,
+          messages: []
+        });
+        await chat.save();
+        console.log('✅ Nuevo chat creado desde transacción:', chatId);
+      } else {
+        console.log('✅ Chat existente recuperado:', chatId);
+      }
+
+      // Poblar datos completos
+      chat = await PropertyChat.findOne({ chatId })
+        .populate('property')
+        .populate('user', 'name email avatar')
+        .populate('owner', 'name email avatar');
+
+      res.json(chat);
+    } catch (err) {
+      console.error('❌ Error al obtener/crear chat:', err);
       res.status(500).json({ error: err.message });
     }
   });

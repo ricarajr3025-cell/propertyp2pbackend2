@@ -32,17 +32,19 @@ const fileFilter = (req, file, cb) => {
   }
 };
 
-const upload = multer({ 
+const upload = multer({
   storage: storage,
   fileFilter: fileFilter,
   limits: { fileSize: 10 * 1024 * 1024 }
 });
 
-// Crear o recuperar chat existente
+// ============================================
+// CREAR O RECUPERAR CHAT (desde propiedad)
+// ============================================
 router.post('/start/:propertyId', auth, async (req, res) => {
   try {
     const property = await RentalProperty.findById(req.params.propertyId).populate('owner');
-    
+
     if (!property) {
       return res.status(404).json({ error: 'Propiedad no encontrada' });
     }
@@ -78,7 +80,9 @@ router.post('/start/:propertyId', auth, async (req, res) => {
   }
 });
 
-// Obtener historial de chat
+// ============================================
+// OBTENER CHAT POR CHAT ID
+// ============================================
 router.get('/:chatId', auth, async (req, res) => {
   try {
     const chat = await RentalChat.findOne({ chatId: req.params.chatId })
@@ -92,7 +96,7 @@ router.get('/:chatId', auth, async (req, res) => {
       return res.status(404).json({ error: 'Chat no encontrado' });
     }
 
-    const isParticipant = 
+    const isParticipant =
       chat.user._id.toString() === req.user.id.toString() ||
       chat.owner._id.toString() === req.user.id.toString();
 
@@ -107,7 +111,9 @@ router.get('/:chatId', auth, async (req, res) => {
   }
 });
 
-// Obtener todos los chats del usuario
+// ============================================
+// OBTENER TODOS LOS CHATS DEL USUARIO
+// ============================================
 router.get('/', auth, async (req, res) => {
   try {
     const chats = await RentalChat.find({
@@ -126,7 +132,9 @@ router.get('/', auth, async (req, res) => {
   }
 });
 
-// Enviar mensaje con archivo adjunto
+// ============================================
+// ENVIAR MENSAJE CON ARCHIVO
+// ============================================
 router.post('/:chatId/message', auth, upload.single('file'), async (req, res) => {
   try {
     const { message } = req.body;
@@ -142,7 +150,7 @@ router.post('/:chatId/message', auth, upload.single('file'), async (req, res) =>
       return res.status(404).json({ error: 'Chat no encontrado' });
     }
 
-    const isParticipant = 
+    const isParticipant =
       chat.user.toString() === req.user.id.toString() ||
       chat.owner.toString() === req.user.id.toString();
 
@@ -150,8 +158,8 @@ router.post('/:chatId/message', auth, upload.single('file'), async (req, res) =>
       return res.status(403).json({ error: 'No tienes acceso a este chat' });
     }
 
-    const receiver = chat.user.toString() === req.user.id.toString() 
-      ? chat.owner 
+    const receiver = chat.user.toString() === req.user.id.toString()
+      ? chat.owner
       : chat.user;
 
     const newMessage = {
@@ -180,6 +188,59 @@ router.post('/:chatId/message', auth, upload.single('file'), async (req, res) =>
     res.json(newMessage);
   } catch (err) {
     console.error('❌ Error al enviar mensaje:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============================================
+// ✅ NUEVO: OBTENER O CREAR CHAT (desde transacciones)
+// ============================================
+router.post('/get-or-create', auth, async (req, res) => {
+  try {
+    const { chatId, propertyId, ownerId } = req.body;
+
+    if (!chatId || !propertyId || !ownerId) {
+      return res.status(400).json({ error: 'Faltan parámetros requeridos: chatId, propertyId, ownerId' });
+    }
+
+    console.log('🔍 Buscando/creando chat de alquiler:', { chatId, propertyId, ownerId, userId: req.user.id });
+
+    let chat = await RentalChat.findOne({ chatId });
+
+    if (!chat) {
+      // Crear el chat si no existe
+      const property = await RentalProperty.findById(propertyId).populate('owner');
+
+      if (!property) {
+        return res.status(404).json({ error: 'Propiedad no encontrada' });
+      }
+
+      // Determinar quién es user y quién es owner
+      const userId = req.user.id === ownerId ? ownerId : req.user.id;
+      const ownerIdFinal = ownerId;
+
+      chat = new RentalChat({
+        chatId,
+        property: propertyId,
+        user: userId === ownerIdFinal ? userId : req.user.id,
+        owner: ownerIdFinal,
+        messages: []
+      });
+      await chat.save();
+      console.log('✅ Nuevo chat de alquiler creado desde transacción:', chatId);
+    } else {
+      console.log('✅ Chat de alquiler existente recuperado:', chatId);
+    }
+
+    // Poblar datos completos
+    chat = await RentalChat.findOne({ chatId })
+      .populate('property')
+      .populate('user', 'name email avatar')
+      .populate('owner', 'name email avatar');
+
+    res.json(chat);
+  } catch (err) {
+    console.error('❌ Error al obtener/crear chat de alquiler:', err);
     res.status(500).json({ error: err.message });
   }
 });
