@@ -1,26 +1,26 @@
 const mongoose = require('mongoose');
 
-const RentalChatSchema = new mongoose.Schema({
+const PropertyChatSchema = new mongoose.Schema({
   chatId: { 
     type: String, 
-    unique: true,
+    unique: true, 
     required: true,
     index: true 
   },
   property: { 
     type: mongoose.Schema.Types.ObjectId, 
-    ref: 'RentalProperty',
-    required: true
+    ref: 'Property', 
+    required: true 
   },
   user: { 
     type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User',
-    required: true
+    ref: 'User', 
+    required: true 
   },
   owner: { 
     type: mongoose.Schema.Types.ObjectId, 
-    ref: 'User',
-    required: true
+    ref: 'User', 
+    required: true 
   },
   messages: [
     {
@@ -65,12 +65,12 @@ const RentalChatSchema = new mongoose.Schema({
   }
 });
 
-RentalChatSchema.index({ user: 1, owner: 1 });
-RentalChatSchema.index({ property: 1 });
+PropertyChatSchema.index({ user: 1, owner: 1 });
+PropertyChatSchema.index({ property: 1 });
 
-RentalChatSchema.pre('save', function(next) {
+PropertyChatSchema.pre('save', function(next) {
   this.updatedAt = new Date();
   next();
 });
 
-module.exports = mongoose.model('RentalChat', RentalChatSchema);
+module.exports = mongoose.model('PropertyChat', PropertyChatSchema);

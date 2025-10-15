@@ -12,5 +12,6 @@ const RentalPropertySchema = new mongoose.Schema({
   },
   images: [String],
   available: { type: Boolean, default: true }
-});
+}, { timestamps: true });
+
 module.exports = mongoose.model('RentalProperty', RentalPropertySchema);

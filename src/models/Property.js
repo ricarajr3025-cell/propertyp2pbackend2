@@ -7,10 +7,11 @@ const PropertySchema = new mongoose.Schema({
   location: String,
   propertyType: {
     type: String,
-    enum: ['Casa', 'Lote', 'Apartamento', 'Edificio', 'Local Comercial', 'Bodega' ],
+    enum: ['Casa', 'Lote', 'Apartamento', 'Edificio', 'Local Comercial', 'Bodega'],
     required: true
   },
   images: [String],
   available: { type: Boolean, default: true }
-});
+}, { timestamps: true });
+
 module.exports = mongoose.model('Property', PropertySchema);

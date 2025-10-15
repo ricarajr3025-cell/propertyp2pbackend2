@@ -5,10 +5,10 @@ const auth = require('../middleware/auth');
 const multer = require('multer');
 const path = require('path');
 
-// Configuración de almacenamiento para imágenes
+// Configuración de multer para subir imágenes
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, path.resolve(__dirname, '../uploads'));
+    cb(null, path.resolve(__dirname, '../../uploads'));
   },
   filename: function (req, file, cb) {
     cb(null, Date.now() + '-' + file.originalname.replace(/\s+/g, '_'));
@@ -16,60 +16,124 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
-// Publicar propiedad (con imágenes)
-router.post('/', auth, upload.array('images', 5), async (req, res) => {
+// ============================================
+// OBTENER TODAS LAS PROPIEDADES (público)
+// ============================================
+router.get('/', async (req, res) => {
   try {
-    // LOGS DETALLADOS
-    console.log('--- PUBLICAR PROPIEDAD ---');
-    console.log('Usuario autenticado:', req.user ? req.user.id : null);
-    console.log('Body recibido:', req.body);
-    console.log('Archivos recibidos (req.files):', req.files);
+    const properties = await Property.find()
+      .populate('owner', 'name email username avatar whatsapp')
+      .sort({ createdAt: -1 });
+    res.json(properties);
+  } catch (err) {
+    console.error('Error al obtener propiedades:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
-    const { title, description, location, propertyType, price } = req.body;
-    const images = req.files ? req.files.map(file => 'uploads/' + file.filename) : [];
-
-    // Validación de campos obligatorios
-    if (!title || !description || !location || !propertyType || !price) {
-      console.log('Faltan campos obligatorios:', { title, description, location, propertyType, price });
-      return res.status(400).json({ error: "Todos los campos son obligatorios." });
+// ============================================
+// OBTENER UNA PROPIEDAD POR ID (público)
+// ============================================
+router.get('/:id', async (req, res) => {
+  try {
+    const property = await Property.findById(req.params.id)
+      .populate('owner', 'name email username avatar whatsapp phone');
+    
+    if (!property) {
+      return res.status(404).json({ error: 'Propiedad no encontrada' });
     }
+    
+    res.json(property);
+  } catch (err) {
+    console.error('Error al obtener propiedad:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
 
-    // Validación de tipo de propiedad
-    const allowedTypes = ['Casa', 'Lote', 'Apartamento', 'Edificio', 'Local Comercial'];
-    if (!allowedTypes.includes(propertyType)) {
-      console.log('Tipo de propiedad no válido:', propertyType);
-      return res.status(400).json({ error: "Tipo de propiedad no válido." });
+// ============================================
+// CREAR PROPIEDAD (requiere autenticación)
+// ============================================
+router.post('/', auth, upload.array('images', 10), async (req, res) => {
+  try {
+    const { title, description, price, location, propertyType } = req.body;
+    const images = req.files ? req.files.map(file => 'uploads/' + file.filename) : [];
+    
+    if (!title || !description || !price || !propertyType) {
+      return res.status(400).json({ error: 'Todos los campos son obligatorios' });
     }
 
     const property = new Property({
       owner: req.user.id,
       title,
       description,
+      price,
       location,
       propertyType,
-      price,
       images,
       available: true
     });
 
     await property.save();
-    console.log('Propiedad guardada:', property);
     res.status(201).json(property);
   } catch (err) {
-    console.error('Error al publicar propiedad:', err);
+    console.error('Error al crear propiedad:', err);
     res.status(500).json({ error: err.message });
   }
 });
 
-// Listar propiedades disponibles con datos del propietario
-router.get('/', async (req, res) => {
+// ============================================
+// ACTUALIZAR PROPIEDAD (requiere autenticación)
+// ============================================
+router.put('/:id', auth, async (req, res) => {
   try {
-    console.log('--- LISTAR PROPIEDADES ---');
-    const properties = await Property.find({ available: true }).populate('owner', 'username email');
-    console.log('Propiedades enviadas:', properties.length);
-    res.json(properties);
+    const property = await Property.findById(req.params.id);
+    
+    if (!property) {
+      return res.status(404).json({ error: 'Propiedad no encontrada' });
+    }
+
+    // Verificar que el usuario sea el dueño
+    if (property.owner.toString() !== req.user.id) {
+      return res.status(403).json({ error: 'No tienes permiso para editar esta propiedad' });
+    }
+
+    const { title, description, price, location, propertyType, available } = req.body;
+    
+    if (title) property.title = title;
+    if (description) property.description = description;
+    if (price) property.price = price;
+    if (location) property.location = location;
+    if (propertyType) property.propertyType = propertyType;
+    if (typeof available !== 'undefined') property.available = available;
+
+    await property.save();
+    res.json(property);
   } catch (err) {
-    console.error('Error al listar propiedades:', err);
+    console.error('Error al actualizar propiedad:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ============================================
+// ELIMINAR PROPIEDAD (requiere autenticación)
+// ============================================
+router.delete('/:id', auth, async (req, res) => {
+  try {
+    const property = await Property.findById(req.params.id);
+    
+    if (!property) {
+      return res.status(404).json({ error: 'Propiedad no encontrada' });
+    }
+
+    // Verificar que el usuario sea el dueño
+    if (property.owner.toString() !== req.user.id) {
+      return res.status(403).json({ error: 'No tienes permiso para eliminar esta propiedad' });
+    }
+
+    await property.deleteOne();
+    res.json({ message: 'Propiedad eliminada correctamente' });
+  } catch (err) {
+    console.error('Error al eliminar propiedad:', err);
     res.status(500).json({ error: err.message });
   }
 });
